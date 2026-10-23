@@ -1,0 +1,27 @@
+# Gradle output, downloaded platform, and sandbox IDE state
+.gradle/
+.intellijPlatform/
+build/
+out/
+
+# Per-developer IntelliJ settings
+.idea/
+*.iml
+
+# Local operating system files
+.DS_Store
+Thumbs.db
+
+# Local credentials (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Logs and private key / keystore files
+*.log
+*.log.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks

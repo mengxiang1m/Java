@@ -1,0 +1,14 @@
+<idea-plugin>
+    <id>com.cst3492.assistant</id>
+    <name>CST3492 Assistant</name>
+    <vendor>CST3492 Team</vendor>
+    <description>A minimal assistant tool window for the CST3492 team project.</description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="CST3492 Assistant"
+                    anchor="right"
+                    factoryClass="com.cst3492.assistant.ui.AssistantToolWindowFactory"/>
+    </extensions>
+</idea-plugin>
