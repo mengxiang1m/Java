@@ -1,0 +1,20 @@
+# Gradle
+.gradle/
+build/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# --- Implementation under review (kept out of git until the owner reviews it) ---
+# Only the package-info.java placeholders are part of the committed skeleton.
+src/main/java/com/cst3492/ta/core/*
+!src/main/java/com/cst3492/ta/core/package-info.java
+src/main/java/com/cst3492/ta/llm/*
+!src/main/java/com/cst3492/ta/llm/package-info.java
+src/test/java/com/cst3492/ta/llm/*
