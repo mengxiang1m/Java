@@ -11,4 +11,12 @@
                     anchor="right"
                     factoryClass="com.cst3492.assistant.ui.AssistantToolWindowFactory"/>
     </extensions>
+    <actions>
+        <action id="com.cst3492.assistant.AskAssistant"
+                class="com.cst3492.assistant.actions.AskAssistantAction"
+                text="Ask CST3492 Assistant"
+                description="Attach selected Java code to the assistant without sending a question">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
+    </actions>
 </idea-plugin>
