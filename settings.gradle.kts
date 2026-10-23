@@ -1,1 +1,1 @@
-rootProject.name = "cst3492-assistant"
+rootProject.name = "cst3492-ta"

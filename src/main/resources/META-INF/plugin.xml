@@ -1,16 +1,24 @@
-<idea-plugin>
-    <id>com.cst3492.assistant</id>
-    <name>CST3492 Assistant</name>
-    <vendor>CST3492 Team</vendor>
-    <description>A minimal assistant tool window for the CST3492 team project.</description>
+﻿<idea-plugin>
+    <id>com.cst3492.ta</id>
+    <name>CST3492 TA</name>
+    <vendor>CST3492 Team A</vendor>
+
+    <description><![CDATA[
+        An AI teaching assistant (TA) for the CST3492 Java Enterprise Application
+        Development course: RAG-based Q&amp;A with source citation.
+
+        This plugin integrates LLM, RAG, and UI modules.
+    ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="CST3492 Assistant"
                     anchor="right"
                     factoryClass="com.cst3492.assistant.ui.AssistantToolWindowFactory"/>
     </extensions>
+
     <actions>
         <action id="com.cst3492.assistant.AskAssistant"
                 class="com.cst3492.assistant.actions.AskAssistantAction"

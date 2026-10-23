@@ -1,27 +1,22 @@
-# Gradle output, downloaded platform, and sandbox IDE state
+# Gradle
 .gradle/
-.intellijPlatform/
 build/
-out/
 
-# Per-developer IntelliJ settings
+# IntelliJ IDEA
 .idea/
 *.iml
+out/
 
-# Local operating system files
+# OS
 .DS_Store
 Thumbs.db
 
-# Local credentials (never commit secrets)
-.env
-.env.*
-!.env.example
-
-# Logs and private key / keystore files
-*.log
-*.log.*
-*.pem
-*.key
-*.p12
-*.pfx
-*.jks
+# --- Implementation under review (kept out of git until the owner reviews it) ---
+# Only the package-info.java placeholders are part of the committed skeleton.
+src/main/java/com/cst3492/ta/core/*
+!src/main/java/com/cst3492/ta/core/package-info.java
+src/main/java/com/cst3492/ta/llm/*
+!src/main/java/com/cst3492/ta/llm/package-info.java
+src/test/java/com/cst3492/ta/llm/*
+# Local IntelliJ Platform SDK and sandbox artifacts
+.intellijPlatform/

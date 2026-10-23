@@ -1,4 +1,37 @@
 # CST3492 Assistant
+## Team Architecture
+
+The project is organised into five modules under the shared `com.cst3492.ta` architecture:
+
+| Module | Responsibility |
+|---|---|
+| `core` | Shared data models and contracts between modules |
+| `rag` | Course document ingestion, chunking, indexing, and retrieval |
+| `llm` | LLM integration, answer generation, and citation handling |
+| `ui` | Tool Window, chat interface, and editor context actions |
+| `settings` | Plugin settings and API-key storage |
+
+### Intended data flow
+
+1. The UI collects a question and optional selected Java code.
+2. The RAG module retrieves relevant course material and source locations.
+3. The LLM module generates an answer using the question, selected code, and retrieved material.
+4. The UI displays the answer and its course citations.
+
+The module structure defines the intended integration architecture. The complete retrieval and LLM pipeline has not yet been implemented in this prototype.
+
+### Current UI implementation
+
+The current UI implementation is located under `com.cst3492.assistant`. It provides:
+
+- A Tool Window with a mock chat interface.
+- Structured answers and typed PDF-page/PPT-slide source previews.
+- Editor right-click integration for attaching selected Java code.
+- Separate code-context preview, context clearing, and send-time request snapshots.
+- Unit tests for reply models, request handling, and wrapped labels.
+
+The UI currently uses `MockChatService`. Its responses and source citations are test fixtures, not real AI answers or evidence from retrieved course materials. Integration with the shared `core`, `rag`, and `llm` contracts remains future work.
+
 
 A minimal IntelliJ IDEA plugin foundation for our four-person team. It adds a
 **CST3492 Assistant** Tool Window containing a minimal interactive mock chat.

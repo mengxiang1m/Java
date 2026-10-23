@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     java
     id("org.jetbrains.intellij.platform") version "2.19.0"
 }
@@ -6,7 +6,6 @@ plugins {
 group = "com.cst3492"
 version = "0.1.0"
 
-// Override on another workstation with -PlocalIdePath="C:/path/to/IntelliJ IDEA".
 val localIdePath = providers.gradleProperty("localIdePath")
     .orElse("D:/IntelliJ/IntelliJ IDEA 2026.2.2")
 
@@ -18,9 +17,14 @@ repositories {
 }
 
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.4")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.13.4")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.4")
+    // Required by the main branch's module architecture.
+    compileOnly("com.google.code.gson:gson:2.10.1")
+    testImplementation("com.google.code.gson:gson:2.10.1")
+
+    testImplementation(platform("org.junit:junit-bom:5.13.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
     intellijPlatform {
         local(localIdePath)
     }
@@ -36,7 +40,7 @@ java {
     }
 }
 
-// Use the installed JDK while retaining Java 21 language, API, and bytecode limits.
+// Preserve the existing Java 21 bytecode target.
 tasks.withType<JavaCompile>().configureEach {
     options.release.set(21)
 }
