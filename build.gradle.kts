@@ -31,7 +31,13 @@ dependencies {
 }
 
 tasks.test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        if (providers.gradleProperty("runLlmIntegrationTests").orNull == "true") {
+            includeTags("llm-integration")
+        } else {
+            excludeTags("llm-integration")
+        }
+    }
 }
 
 java {

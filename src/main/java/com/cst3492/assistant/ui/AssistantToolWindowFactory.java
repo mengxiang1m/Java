@@ -3,7 +3,7 @@ package com.cst3492.assistant.ui;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
-import com.cst3492.assistant.chat.MockChatService;
+import com.cst3492.assistant.chat.ChatServiceFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +12,8 @@ import org.jetbrains.annotations.NotNull;
 public final class AssistantToolWindowFactory implements ToolWindowFactory {
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        AssistantChatPanel panel = new AssistantChatPanel(project, new MockChatService());
+        ChatServiceFactory.Selection selection = ChatServiceFactory.create(System.getenv());
+        AssistantChatPanel panel = new AssistantChatPanel(project, selection.service(), selection.description());
         Content content = ContentFactory.getInstance().createContent(panel, "", false);
         content.setDisposer(panel);
         content.setPreferredFocusableComponent(panel.getInput());

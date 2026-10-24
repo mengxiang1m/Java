@@ -1,8 +1,7 @@
 package com.cst3492.assistant.chat;
 
 /**
- * Immediate, non-blocking reply contract for this UI-only prototype.
- * A future network service must use a background/asynchronous adapter, never block the EDT.
+ * Synchronous reply contract. May perform network I/O; callers must execute off the EDT.
  */
 @FunctionalInterface
 public interface ChatService {

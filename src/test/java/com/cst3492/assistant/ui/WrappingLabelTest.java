@@ -11,6 +11,24 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class WrappingLabelTest {
     @Test
+    void centerLabelAccountsForAdjacentContextActionAtNarrowWidth() throws Exception {
+        SwingUtilities.invokeAndWait(() -> {
+            JPanel parent = new JPanel(new BorderLayout());
+            parent.setSize(210, 200);
+            WrappingLabel label = new WrappingLabel("Attached Java code");
+            javax.swing.JButton clear = new javax.swing.JButton("Clear context");
+            parent.add(label, BorderLayout.CENTER);
+            parent.add(clear, BorderLayout.EAST);
+            int available = parent.getWidth() - clear.getPreferredSize().width;
+            assertTrue(label.getPreferredSize().width <= available);
+            assertTrue(label.getPreferredSize().height > label.getFont().getSize());
+            parent.setSize(parent.getWidth(), parent.getPreferredSize().height);
+            parent.doLayout();
+            assertTrue(label.getHeight() >= label.getPreferredSize().height);
+        });
+    }
+
+    @Test
     void narrowParentIncreasesLabelHeightWithoutIncreasingWidth() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
             JPanel parent = new JPanel(new BorderLayout());

@@ -30,11 +30,163 @@ The current UI implementation is located under `com.cst3492.assistant`. It provi
 - Separate code-context preview, context clearing, and send-time request snapshots.
 - Unit tests for reply models, request handling, and wrapped labels.
 
-The UI currently uses `MockChatService`. Its responses and source citations are test fixtures, not real AI answers or evidence from retrieved course materials. Integration with the shared `core`, `rag`, and `llm` contracts remains future work.
+The UI adapts B's core/LLM contracts through `LlmChatService`. Without a configured
+API key it falls back to `MockChatService`; its citations remain test fixtures.
+RAG is not connected: real requests currently use `RetrievalResult.empty()`.
+
+### UI to LLM integration
+
+Call chain: `AssistantChatPanel` -> `ChatRequestWorker` (SwingWorker background
+thread) -> `LlmChatService` -> `AssistantQuery` -> `AnswerGenerationService` ->
+`OpenAiCompatibleClient`. Question and selected Java code remain separate in the
+immutable request. Completion, errors, cancellation and composer restoration run
+on the EDT. Tool Window disposal cancels the worker and prevents further component
+updates. Closed projects suppress callbacks and their Tool Window disposal cancels
+the request. Cancellation is best-effort; it cannot retract an already-sent request.
+
+There is no implemented settings store yet (`ta.settings` contains only package
+documentation). The factory reads **DEEPSEEK_API_KEY** from its process environment
+and uses B's existing `LlmConfig.deepseek(...)`. Never put keys in source files,
+Gradle properties, logs, or test code. For a sandbox use masked PowerShell input:
+
+```powershell
+Set-Location 'D:\Desktop\Java'
+$localSecret = Read-Host 'DeepSeek API key' -AsSecureString
+$localCredential = [System.Management.Automation.PSCredential]::new('unused', $localSecret)
+$env:DEEPSEEK_API_KEY = $localCredential.GetNetworkCredential().Password
+Remove-Item Env:CST3492_CHAT_MODE -ErrorAction SilentlyContinue
+.\gradlew.bat runIde --offline
+# After the sandbox closes:
+Remove-Item Env:DEEPSEEK_API_KEY -ErrorAction SilentlyContinue
+Remove-Variable localCredential, localSecret
+```
+
+Restart an existing sandbox after changing its environment. No request is made
+until Send/Enter; attached code is sent with the question. Nonblank configuration
+does not prove the key is valid or the endpoint reachable. Errors are displayed
+without raw response bodies or credentials. To force Mock mode even with a key,
+set `$env:CST3492_CHAT_MODE = 'mock'` before launching. `/sources`, `/many-sources`,
+`/no-sources`, `/error`, `/normal` are mock-only fixtures; real mode treats them as
+ordinary questions.
+
+Without A's retrieval, successful answers have NORMAL status, no Sources list, and
+B's exact general-knowledge disclaimer. Empty citations are not a call failure.
+The adapter's constructor accepts B's existing `RetrievalResult` for a single-query
+integration later; no new RAG API is invented. Only grounded citations matching
+retrieved metadata are mapped. Supported locations are single PDF `p.3`/`Page 3`
+or PPT `Slide 5`. Missing/unknown positions, ranges, or PDF-style PPT page labels
+are omitted rather than guessed. B's answer body remains intact, so unsupported
+locations may retain inline markers without a UI Sources list. A's real retrieval
+and an agreed range representation are still needed for full course citations.
+
+### Deterministic tests and manual live test
+
+Default `test` excludes the explicit `llm-integration` tag. The existing live
+`LlmIntegrationTest` keeps its environment-variable condition and assertions.
+After locally configuring a key and network, explicitly run only the live test:
+
+```powershell
+.\gradlew.bat test -PrunLlmIntegrationTests=true --tests '*LlmIntegrationTest' --rerun-tasks --offline
+```
+
+`--offline` controls Gradle downloads, not HTTP inside tests. No key means the live
+test is skipped by its existing condition. The previous LlmException has not been
+diagnosed or fixed by this UI adapter; live API success is a separate manual check.
+
+Manual UI acceptance: verify mock fixtures first, restart with real configuration,
+then send a Java question. While waiting, resize/scroll the IDE: it should remain
+responsive with the composer disabled. Completion must restore input/focus. Attach
+selected code and explicitly send; expect general knowledge with the disclaimer
+and no invented sources. Test an invalid local key for friendly error/retry, and
+close the project/window during a request to check disposal behavior. These UI and
+live-network checks are not proved by unit tests.
 
 
 A minimal IntelliJ IDEA plugin foundation for our four-person team. It adds a
 **CST3492 Assistant** Tool Window containing a minimal interactive mock chat.
+
+## Conversation UI redesign
+
+### Unified question composer
+
+`ChatComposer` is a single rounded Swing surface containing the borderless input
+and a bottom action row. The send control is a 38 logical-pixel circle, with the
+platform's bundled upward-arrow icon, no text label, a tooltip/accessibility name,
+and separate enabled/hover/pressed/disabled treatments. The input grows from two
+to seven visual lines and then scrolls vertically. It shrinks after sending or
+clearing. The composer stays outside the conversation viewport.
+
+There is no persistent Enter/Shift+Enter instruction in the UI or response status
+labels. Keyboard behavior remains Enter to submit and Shift+Enter to insert a
+newline at the caret. Empty questions are rejected, and background request state,
+cancel/failure recovery, editor context, and stale/disposed guards are unchanged.
+Attached Java code remains separate above the input in a compact two-row preview;
+its original text and the question draft are preserved when context changes.
+
+**File upload is deferred.** `ta.rag` currently has only `package-info.java`, not a
+file ingestion/parser service. `ChatRequest` carries a question and selected code;
+`AssistantQuery` accepts those plus an already-built `RetrievalResult`. There is no
+file input contract, extractor, supported-format/size validation policy, or bounded
+LLM context assembly. The composer reserves a hidden left action slot for a future
+attachment integration, but shows no nonfunctional paperclip/chooser and reads no
+files. A must provide the actual ingestion/retrieval entry point and agree on file
+size, extraction-error and context/token limits before this can become real upload.
+
+For manual acceptance, test the icon-only send control at narrow/wide widths,
+multiline growth and capped scrolling, Enter/Shift+Enter, empty input, loading,
+error/retry and cancellation. Recheck context replacement/clearing and existing mock
+source commands. Offscreen snapshots are generated by component tests; they are
+not proof of visual verification in the IDE sandbox.
+
+The Tool Window uses native Swing cards and StyledDocument text, with dark charcoal
+surfaces and a light-theme fallback. User bubbles are offset right; assistant cards
+have a small identity/status label. Markdown headings, bold text, lists, inline code,
+and fenced code blocks are rendered with native styles, not a browser or web view.
+Raw HTML, remote images and external Markdown URLs are never executed or fetched.
+This is a deliberately small Markdown subset, not a complete CommonMark engine.
+Original question/code data and the service contracts are unchanged.
+
+`ConversationView` scrolls independently of the bottom composer. `MessageCard`,
+`MarkdownView`, `SourceCards`, `ChatColumnLayout` and `ChatUi` keep presentation out
+of the request lifecycle. `ChatReplyPresentation.message()` remains a plain-text
+export/debug representation for existing callers; the rich UI uses `cardMessage()`
+and displays status separately instead of inserting diagnostic prefixes into answers.
+
+Sources are collapsed under **Sources (N)**. Each card keeps the supplied document,
+PDF page/PPT slide and test-data status; **Details** reveals a metadata note and
+**Copy citation**. Current `CourseSource` has no excerpt, score, URI, or navigation
+target, so no preview excerpt, score, or Open action is fabricated. Those fields and
+a validated navigation contract are future model extensions. Mock sources remain
+explicitly identified as **Test data, not evidence**.
+
+Inline `[n]` tokens are clickable only when that answer has supplied source records.
+They expand the answer's source list. B's current citations lack stable IDs and the
+adapter can omit unsupported locations, so the UI does **not** assume token `[n]`
+means the nth displayed card and does not pretend to open a particular document.
+
+Loading is shown by an indeterminate progress line and status text. Errors use a
+compact error card with **Retry question**, which explicitly resends the failed
+question and its original code snapshot. Sending, cancellation, disposal and stale
+worker guards continue to use the existing `ChatRequestWorker` lifecycle.
+
+Manual acceptance after fully closing any older sandbox:
+
+```powershell
+$env:CST3492_CHAT_MODE = 'mock'
+.\gradlew.bat runIde --offline
+```
+
+Check the empty state; enter a question; try `/sources`, expand Sources/Details and
+copy a citation; try `/many-sources` at narrow and wide widths. Check `/no-sources`,
+`/normal`, and `/error` (including Retry). Attach and replace Java code, ensure the
+draft survives, and clear the context. Enter must send and Shift+Enter must insert
+a newline. Inspect scrolling while reading older cards and while following new
+answers; verify the composer stays pinned and long filenames/code do not cause a
+horizontal scrollbar. Test actual light/dark IDE themes and keyboard focus.
+
+UI tests render the actual panel offscreen at narrow/wide widths, with snapshots
+under `build/reports/ui/assistant-*.png`. These are test artifacts, not proof of
+visual acceptance inside the IDE. No real API request is needed for these checks.
 
 ## Versions and prerequisites
 
@@ -123,17 +275,16 @@ plugin warnings remain, and this launch does not verify rendered chat interactio
 ## Mock chat and manual acceptance
 
 `AssistantChatPanel` owns the Swing UI; `ChatMessage` stores a role and plain text.
-`ChatService` is an injectable immediate-response interface taking `ChatRequest`
+`ChatService` is an injectable synchronous interface taking `ChatRequest`
 and returning `ChatReply` (a string-question convenience overload is also provided);
 `MockChatService` returns local fixtures explicitly identified as UI test data. No question is sent
-to a server. A future network service needs an asynchronous/background adapter;
-do not put blocking calls into this interface's current EDT invocation.
+to a server in mock mode. Real calls run in `ChatRequestWorker` off the EDT.
 
 Messages wrap in a read-only scrollable transcript with **You**, **Assistant**,
 and **Error** labels. History stays in memory for this Tool Window's lifetime;
 it is not saved across IDE restarts. Sending disables the composer until the mock
-finishes. The callback is scheduled with `ToolWindowManager.invokeLater` on the EDT,
-with disposal checks; there are no artificial delays or new worker threads.
+finishes. Services run in SwingWorker's shared pool with disposal checks; completion
+callbacks update the UI on the EDT. There are no artificial delays or custom pools.
 
 Manual acceptance in the sandbox:
 
@@ -264,7 +415,8 @@ in separate packages under `com.cst3492.assistant` and agree on small interfaces
 between components. Avoid putting application logic into the Tool Window factory.
 Use the shared Gradle build; keep personal IDE settings and secrets out of Git.
 
-This prototype includes no retrieval, LLM integration, or document ingestion.
+This prototype includes no retrieval or document ingestion. Real LLM integration
+is available with local configuration; course retrieval still awaits module A.
 
 Version references: [JetBrains Gradle plugin documentation](https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html),
 [platform Java/build compatibility](https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html),

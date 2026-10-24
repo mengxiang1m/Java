@@ -8,6 +8,12 @@ import com.cst3492.assistant.chat.CourseSource;
 public final class ChatReplyPresentation {
     private ChatReplyPresentation() { }
 
+    /** Rich UI uses body and status separately; message() remains a plain-text export format. */
+    static ChatMessage cardMessage(ChatReply reply) {
+        return new ChatMessage(reply.status() == ChatReply.Status.ERROR
+                ? ChatMessage.Role.ERROR : ChatMessage.Role.ASSISTANT, reply.text());
+    }
+
     public static ChatMessage message(ChatReply reply) {
         String heading = switch (reply.status()) {
             case MOCK -> "[MOCK - test data, no AI service]";
@@ -34,8 +40,8 @@ public final class ChatReplyPresentation {
 
     public static String statusText(ChatReply reply) {
         return switch (reply.status()) {
-            case MOCK -> "Mock reply received. Enter to send another question.";
-            case NORMAL -> "Reply received. Enter to send another question.";
+            case MOCK -> "Mock reply received.";
+            case NORMAL -> "Reply received.";
             case NO_SOURCES -> "No relevant course materials. You can ask another question.";
             case ERROR -> "Reply failed. You can send another question.";
         };

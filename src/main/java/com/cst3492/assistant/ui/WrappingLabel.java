@@ -6,6 +6,8 @@ import javax.swing.text.View;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Insets;
+import java.awt.BorderLayout;
+import java.awt.Component;
 
 /** A themed Swing label whose preferred height follows its parent's available width. */
 final class WrappingLabel extends JLabel {
@@ -29,6 +31,16 @@ final class WrappingLabel extends JLabel {
         }
         Insets parentInsets = parent.getInsets();
         int width = Math.max(1, parent.getWidth() - parentInsets.left - parentInsets.right);
+        if (parent.getLayout() instanceof BorderLayout layout
+                && layout.getLayoutComponent(BorderLayout.CENTER) == this) {
+            for (String side : new String[]{BorderLayout.WEST, BorderLayout.EAST}) {
+                Component sibling = layout.getLayoutComponent(side);
+                if (sibling != null && sibling.isVisible()) {
+                    width -= sibling.getPreferredSize().width + layout.getHgap();
+                }
+            }
+            width = Math.max(1, width);
+        }
         Object renderer = getClientProperty(BasicHTML.propertyKey);
         if (renderer instanceof View view) {
             Insets insets = getInsets();
