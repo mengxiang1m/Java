@@ -4,6 +4,7 @@ import com.cst3492.ta.core.AssistantAnswer;
 import com.cst3492.ta.core.AssistantQuery;
 import com.cst3492.ta.core.RetrievalResult;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -13,8 +14,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Manual end-to-end check against the real DeepSeek API.
  *
  * <p>Skipped by default. Run it with a key set, e.g.
- * {@code DEEPSEEK_API_KEY=sk-... ./gradlew test --tests '*LlmIntegrationTest'}.</p>
+ * {@code ./gradlew test -PrunLlmIntegrationTests=true --tests '*LlmIntegrationTest'}
+ * with DEEPSEEK_API_KEY already set in the environment.</p>
  */
+@Tag("llm-integration")
 class LlmIntegrationTest {
 
     @Test

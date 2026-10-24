@@ -1,20 +1,30 @@
-<idea-plugin>
+﻿<idea-plugin>
     <id>com.cst3492.ta</id>
-    <name>CST3492 TA Plugin</name>
+    <name>CST3492 TA</name>
     <vendor>CST3492 Team A</vendor>
 
     <description><![CDATA[
         An AI teaching assistant (TA) for the CST3492 Java Enterprise Application
         Development course: RAG-based Q&amp;A with source citation.
 
-        This module (llm) provides LLM integration and answer generation. The UI
-        tool window and editor actions are registered by the UI module, and the
-        retrieval pipeline by the RAG module.
+        This plugin integrates LLM, RAG, and UI modules.
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
 
-    <!-- Extensions (tool window, editor actions, services) are added here by the
-         UI / RAG modules as the team integrates their parts. -->
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="CST3492 Assistant"
+                    anchor="right"
+                    factoryClass="com.cst3492.assistant.ui.AssistantToolWindowFactory"/>
+    </extensions>
+
+    <actions>
+        <action id="com.cst3492.assistant.AskAssistant"
+                class="com.cst3492.assistant.actions.AskAssistantAction"
+                text="Ask CST3492 Assistant"
+                description="Attach selected Java code to the assistant without sending a question">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
+    </actions>
 </idea-plugin>

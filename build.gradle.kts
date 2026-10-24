@@ -1,44 +1,66 @@
-plugins {
-    id("java")
-    // IntelliJ Platform plugin (used to build/run this code as an IntelliJ IDEA plugin).
-    // Requires Gradle 8.9+; the wrapper below uses 8.14.
-    id("org.jetbrains.intellij") version "1.17.4"
+﻿plugins {
+    java
+    id("org.jetbrains.intellij.platform") version "2.19.0"
 }
 
-group = "com.cst3492.ta"
+group = "com.cst3492"
 version = "0.1.0"
+
+val localIdePath = providers.gradleProperty("localIdePath")
+    .orElse("D:/IntelliJ/IntelliJ IDEA 2026.2.2")
 
 repositories {
     mavenCentral()
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
 dependencies {
-    // Gson is bundled with the IntelliJ platform at runtime, so it is declared
-    // compileOnly here (the plugin does NOT bundle its own copy). It is also a
-    // testImplementation so the unit tests can run standalone.
+    // Required by the main branch's module architecture.
     compileOnly("com.google.code.gson:gson:2.10.1")
     testImplementation("com.google.code.gson:gson:2.10.1")
 
-    testImplementation(platform("org.junit:junit-bom:5.10.2"))
+    testImplementation(platform("org.junit:junit-bom:5.13.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
 
-intellij {
-    version.set("2024.3")
-    type.set("IC") // IntelliJ IDEA Community Edition
-    // No extra platform plugins are needed by the LLM module.
-    plugins.set(listOf())
-}
-
-tasks {
-    // Compile to Java 17 bytecode no matter which JDK runs Gradle, so the build
-    // also works on machines that only have a newer JDK installed.
-    withType<JavaCompile>().configureEach {
-        options.release.set(17)
+    intellijPlatform {
+        local(localIdePath)
     }
+}
 
-    test {
-        useJUnitPlatform()
+tasks.test {
+    useJUnitPlatform {
+        if (providers.gradleProperty("runLlmIntegrationTests").orNull == "true") {
+            includeTags("llm-integration")
+        } else {
+            excludeTags("llm-integration")
+        }
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+// Preserve the existing Java 21 bytecode target.
+tasks.withType<JavaCompile>().configureEach {
+    options.release.set(21)
+}
+
+intellijPlatform {
+    pluginConfiguration {
+        ideaVersion {
+            sinceBuild = "262"
+            untilBuild = "262.*"
+        }
+    }
+    pluginVerification {
+        ides {
+            local(provider { intellijPlatform.platformPath.toFile() })
+        }
     }
 }
