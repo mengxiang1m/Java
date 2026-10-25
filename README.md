@@ -6,8 +6,8 @@
 It imports **PDF, PPTX and legacy PPT**, indexes course knowledge chunks, and
 returns the existing `RetrievedChunk` / `RetrievalResult` contracts. No IntelliJ
 instance, API key, LLM call, external search server, or course-file download is
-needed to test it. The current chat factory does not yet call this service;
-the UI team can integrate it using the example below.
+needed to test it. Live chat now shares this service with the Tool Window
+import action and retrieves fresh context for each question.
 
 ### Run A's tests without IntelliJ
 
@@ -80,9 +80,9 @@ Import errors throw `DocumentIngestionException` with `getReason()` equal to
 should handle I/O exceptions at the import/removal boundary.
 
 Keep one service per course/project and call `retrieve` for **each new question**.
-For the current UI adapter, create `new LlmChatService(generationService,
-knowledge.retrieve(request.question()))` for that query; its existing constructor
-holds a single-query snapshot. Parsing/indexing should run off the Swing EDT.
+For live chat, create `new LlmChatService(generationService, knowledge)`;
+it retrieves again for each question. The `RetrievalResult` constructor remains
+available for callers supplying a fixed single-query snapshot. Parsing/indexing should run off the Swing EDT.
 Import and removal atomically publish an immutable search snapshot. An earlier
 `RetrievalResult` remains unchanged after updates.
 
@@ -190,6 +190,18 @@ and citations in a compatible IDEA sandbox. The shared core contracts are unchan
 The existing merge-conflict markers in `.gitignore` also remain a repository
 integration cleanup item; they predate this A-only change.
 
+## Integrated chat and manual acceptance
+
+The A/B/C code is connected. Run the independent integration checks and create
+sample documents with `bash scripts/gradle.sh -p integration-standalone test prepareAcceptanceMaterials`.
+Tongji and DeepSeek can be selected through environment configuration; the
+assignment references both providers, without mandating one.
+
+- [Integration evidence and configuration](docs/INTEGRATION_ACCEPTANCE.md)
+- [Chinese step-by-step human acceptance](docs/MANUAL_ACCEPTANCE.zh-CN.md)
+- Start the three-stage credential and visual-check wizard with
+  `bash scripts/manual-acceptance.sh`. It never saves an API key.
+
 ## Team Architecture
 
 The project is organised into five modules under the shared `com.cst3492.ta` architecture:
@@ -223,7 +235,7 @@ The current UI implementation is located under `com.cst3492.assistant`. It provi
 
 The UI adapts B's core/LLM contracts through `LlmChatService`. Without a configured
 API key it falls back to `MockChatService`; its citations remain test fixtures.
-RAG is not connected: real requests currently use `RetrievalResult.empty()`.
+Live chat now retrieves from the session knowledge base for each question.
 
 ### UI to LLM integration
 
@@ -236,9 +248,10 @@ updates. Closed projects suppress callbacks and their Tool Window disposal cance
 the request. Cancellation is best-effort; it cannot retract an already-sent request.
 
 There is no implemented settings store yet (`ta.settings` contains only package
-documentation). The factory reads **DEEPSEEK_API_KEY** from its process environment
-and uses B's existing `LlmConfig.deepseek(...)`. Never put keys in source files,
-Gradle properties, logs, or test code. For a sandbox use masked PowerShell input:
+documentation). The factory supports Tongji, DeepSeek and custom compatible
+providers through the environment variables listed in the integration guide.
+`DEEPSEEK_API_KEY` remains a DeepSeek-only compatibility option. Never put keys
+in source files, Gradle properties, logs, or test code. Legacy DeepSeek example:
 
 ```powershell
 Set-Location 'D:\Desktop\Java'
@@ -260,10 +273,10 @@ set `$env:CST3492_CHAT_MODE = 'mock'` before launching. `/sources`, `/many-sourc
 `/no-sources`, `/error`, `/normal` are mock-only fixtures; real mode treats them as
 ordinary questions.
 
-Without A's retrieval, successful answers have NORMAL status, no Sources list, and
+When retrieval is empty, successful answers have NORMAL status, no Sources list, and
 B's exact general-knowledge disclaimer. Empty citations are not a call failure.
-The adapter's constructor accepts B's existing `RetrievalResult` for a single-query
-integration later; no new RAG API is invented. Only grounded citations matching
+The adapter accepts a shared `KnowledgeBaseService` for live chat and retains
+the `RetrievalResult` constructor for fixed single-query callers. Only grounded citations matching
 retrieved metadata are mapped. Supported locations are single PDF `p.3`/`Page 3`
 or PPT `Slide 5`. Missing/unknown positions, ranges, or PDF-style PPT page labels
 are omitted rather than guessed. B's answer body remains intact, so unsupported
@@ -314,12 +327,10 @@ cancel/failure recovery, editor context, and stale/disposed guards are unchanged
 Attached Java code remains separate above the input in a compact two-row preview;
 its original text and the question draft are preserved when context changes.
 
-**File upload is deferred in the UI.** A's `KnowledgeBaseService` now provides real
-file ingestion and retrieval (see Module A above). `ChatRequest` still carries a
-question and selected code; the composer has no file chooser. The UI integration
-must import chosen paths off the EDT, handle the documented errors, and retrieve
-fresh context for each question. File-size/context limits remain a UI integration
-decision before enabling uploads.
+**Course document import is available.** Click **Import materials** to select
+PDF, PPTX or PPT files (up to 50 MiB each). The background importer preserves
+your draft and reports invalid or text-free files. Imported documents are shared
+with live chat for this Tool Window session; reimport after restarting.
 
 For manual acceptance, test the icon-only send control at narrow/wide widths,
 multiline growth and capped scrolling, Enter/Shift+Enter, empty input, loading,
@@ -434,7 +445,10 @@ a multiline question field, and a **Send** button. Close the sandbox IDE to fini
 Sandbox settings and logs are under
 `.intellijPlatform/sandbox/cst3492-assistant/IU-2026.2.2/` and are ignored by Git.
 
-## Verification on this workstation
+## Historical UI-only verification
+
+These notes predate A/B/C integration. Current results and pending manual checks
+are recorded in [Integration acceptance](docs/INTEGRATION_ACCEPTANCE.md).
 
 The original remote 2025.2.5 build was blocked by downloads. The configuration now
 uses the verified local IU-262.10315.125 installation and installed JDK 25.0.4.1.
@@ -605,8 +619,8 @@ between components. Avoid putting application logic into the Tool Window factory
 Use the shared Gradle build; keep personal IDE settings and secrets out of Git.
 
 Document ingestion and retrieval are available through A's standalone service.
-Real LLM integration is available with local configuration; the UI factory still
-needs to connect per-question course retrieval.
+The Tool Window connects per-question retrieval, configured LLM calls and actual
+source display. Live provider and manual IDEA acceptance are recorded separately.
 
 Version references: [JetBrains Gradle plugin documentation](https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html),
 [platform Java/build compatibility](https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html),

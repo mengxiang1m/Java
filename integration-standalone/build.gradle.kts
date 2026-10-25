@@ -36,3 +36,10 @@ tasks.withType<JavaCompile>().configureEach {
 tasks.test {
     useJUnitPlatform { excludeTags("llm-integration") }
 }
+
+tasks.register<JavaExec>("prepareAcceptanceMaterials") {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.cst3492.integration.CourseFixtures")
+    args(layout.buildDirectory.dir("acceptance-materials").get().asFile.absolutePath)
+}
