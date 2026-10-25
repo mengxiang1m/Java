@@ -22,7 +22,7 @@ import java.awt.RenderingHints;
 final class ChatComposer extends JPanel {
     private final JBTextArea input;
     private final JBScrollPane inputScroll;
-    // No fake upload action: A's ingestion/context and size policy must exist first.
+    // Only callers with a real importer expose an attachment action.
     private final JPanel attachmentActions = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
 
     ChatComposer(JBTextArea input, JButton send) {
@@ -78,6 +78,12 @@ final class ChatComposer extends JPanel {
     }
 
     JBScrollPane inputScroll() { return inputScroll; }
+
+    void addAttachmentAction(javax.swing.JComponent action) {
+        attachmentActions.add(action);
+        attachmentActions.setVisible(true);
+        revalidate();
+    }
 
     @Override
     protected void paintComponent(Graphics graphics) {

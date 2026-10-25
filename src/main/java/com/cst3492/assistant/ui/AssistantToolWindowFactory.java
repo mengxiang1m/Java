@@ -15,7 +15,7 @@ public final class AssistantToolWindowFactory implements ToolWindowFactory {
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         KnowledgeBaseService knowledge = new KnowledgeBaseService();
         ChatServiceFactory.Selection selection = ChatServiceFactory.create(System.getenv(), knowledge);
-        AssistantChatPanel panel = new AssistantChatPanel(project, selection.service(), selection.description());
+        AssistantChatPanel panel = new AssistantChatPanel(project, selection.service(), selection.description(), knowledge);
         Content content = ContentFactory.getInstance().createContent(panel, "", false);
         content.setDisposer(panel);
         content.setPreferredFocusableComponent(panel.getInput());
