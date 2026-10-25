@@ -63,7 +63,10 @@ final class ChatRequestWorker extends SwingWorker<ChatReply, Void> {
                 // Endpoint errors can contain response bodies; never expose/log raw exception text or keys.
                 LOG.warn("Chat request failed; exception type: " + cause.getClass().getName()
                         + ". Response details omitted.");
-                reply = new ChatReply("The service could not reply. Check API configuration and network, then try again.",
+                String message = cause instanceof com.cst3492.assistant.chat.LlmChatService.RetrievalFailureException
+                        ? "Course retrieval failed. Check the knowledge base and try again."
+                        : "The service could not reply. Check API configuration and network, then try again.";
+                reply = new ChatReply(message,
                         ChatReply.Status.ERROR, List.of());
             }
             completed.accept(reply);

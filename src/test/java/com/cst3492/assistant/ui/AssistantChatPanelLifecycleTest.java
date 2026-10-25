@@ -20,6 +20,32 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AssistantChatPanelLifecycleTest {
+    @Test
+    void llmFailureRestoresComposerAndNextQuestionSucceeds() throws Exception {
+        var calls = new java.util.concurrent.atomic.AtomicInteger();
+        var service = new com.cst3492.assistant.chat.LlmChatService(
+                new com.cst3492.ta.llm.AnswerGenerationService(
+                        com.cst3492.ta.llm.LlmConfig.deepseek("offline-test-placeholder"), (config, prompt) -> {
+                    if (calls.getAndIncrement() == 0) throw new com.cst3492.ta.llm.LlmException("private API details");
+                    return "Recovered answer";
+                }), question -> com.cst3492.ta.core.RetrievalResult.empty());
+        Fixture fixture = create(service);
+        for (int i = 0; i < 2; i++) {
+            CountDownLatch done = new CountDownLatch(1);
+            start(fixture, done);
+            assertTrue(done.await(5, TimeUnit.SECONDS));
+            SwingUtilities.invokeAndWait(() -> assertIdle(fixture));
+        }
+        SwingUtilities.invokeAndWait(() -> {
+            var replies = field(fixture.panel, "conversation", ConversationView.class).messages().stream()
+                    .filter(card -> card.reply() != null).map(MessageCard::reply).toList();
+            assertEquals(com.cst3492.assistant.chat.ChatReply.Status.ERROR, replies.get(0).status());
+            assertEquals(com.cst3492.assistant.chat.ChatReply.Status.NORMAL, replies.get(1).status());
+            assertTrue(replies.get(1).text().startsWith("Recovered answer"));
+            fixture.panel.dispose();
+        });
+    }
+
     @org.junit.jupiter.api.BeforeAll
     static void enablePlatformIconRendering() {
         com.intellij.openapi.util.IconLoader.activate();
@@ -31,6 +57,10 @@ class AssistantChatPanelLifecycleTest {
     }
 
     private Fixture create(ChatService service) throws Exception {
+        return create(service, null);
+    }
+
+    private Fixture create(ChatService service, com.cst3492.assistant.knowledge.ProjectKnowledgeBase knowledge) throws Exception {
         AtomicBoolean closed = new AtomicBoolean();
         Project project = (Project) Proxy.newProxyInstance(Project.class.getClassLoader(),
                 new Class<?>[]{Project.class}, (proxy, method, args) -> switch (method.getName()) {
@@ -41,11 +71,216 @@ class AssistantChatPanelLifecycleTest {
                     default -> throw new UnsupportedOperationException(method.getName());
                 });
         AtomicReference<AssistantChatPanel> panel = new AtomicReference<>();
-        SwingUtilities.invokeAndWait(() -> panel.set(new AssistantChatPanel(project, service)));
+        SwingUtilities.invokeAndWait(() -> panel.set(new AssistantChatPanel(project, service, "Test mode", knowledge)));
         return new Fixture(panel.get(), closed);
     }
 
     private record Fixture(AssistantChatPanel panel, AtomicBoolean closed) { }
+
+    @org.junit.jupiter.api.io.TempDir java.nio.file.Path attachmentDirectory;
+
+    private java.nio.file.Path pdf(String name) throws Exception {
+        var path = attachmentDirectory.resolve(name);
+        try (var document = new org.apache.pdfbox.pdmodel.PDDocument()) {
+            var page = new org.apache.pdfbox.pdmodel.PDPage();
+            document.addPage(page);
+            try (var stream = new org.apache.pdfbox.pdmodel.PDPageContentStream(document, page)) {
+                stream.beginText();
+                stream.setFont(new org.apache.pdfbox.pdmodel.font.PDType1Font(
+                        org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName.HELVETICA), 12);
+                stream.newLineAtOffset(40, 700);
+                stream.showText("Question JDBC original course evidence");
+                stream.endText();
+            }
+            document.save(path.toFile());
+        }
+        return path;
+    }
+
+    private java.util.List<java.awt.Component> children(java.awt.Container container) {
+        var result = new java.util.ArrayList<java.awt.Component>();
+        for (var component : container.getComponents()) {
+            result.add(component);
+            if (component instanceof java.awt.Container nested) result.addAll(children(nested));
+        }
+        return result;
+    }
+
+    @Test void selectedThenRemovedAttachmentIsNeverImported() throws Exception {
+        try (var knowledge = new com.cst3492.assistant.knowledge.ProjectKnowledgeBase()) {
+            Fixture fixture = create(new MockChatService(), knowledge);
+            var file = pdf("removed.pdf");
+            SwingUtilities.invokeAndWait(() -> {
+                fixture.panel.setAttachments(java.util.List.of(file));
+                assertTrue(knowledge.snapshot().documents().isEmpty());
+                children(fixture.panel).stream().filter(c -> c instanceof JButton b && "×".equals(b.getText()))
+                        .map(c -> (JButton) c).findFirst().orElseThrow().doClick();
+            });
+            var done = new CountDownLatch(1);
+            start(fixture, done);
+            assertTrue(done.await(5, TimeUnit.SECONDS));
+            assertTrue(knowledge.snapshot().documents().isEmpty());
+            SwingUtilities.invokeAndWait(() -> { assertIdle(fixture); fixture.panel.dispose(); });
+        }
+    }
+
+    @Test void multipleAttachmentsImportBeforeLlmAndSuccessfulCardsClear() throws Exception {
+        try (var knowledge = new com.cst3492.assistant.knowledge.ProjectKnowledgeBase()) {
+            var first = pdf("first.pdf");
+            var second = pdf("second.pdf");
+            AtomicBoolean background = new AtomicBoolean();
+            var llm = new com.cst3492.assistant.chat.LlmChatService(new com.cst3492.ta.llm.AnswerGenerationService(
+                    com.cst3492.ta.llm.LlmConfig.deepseek("offline-test-placeholder"), (config, prompt) -> {
+                background.set(!SwingUtilities.isEventDispatchThread());
+                assertEquals(2, knowledge.snapshot().documents().size());
+                assertTrue(prompt.getUser().contains("JDBC original course evidence"));
+                return new com.google.gson.Gson().toJson(java.util.Map.of("answer", "Offline grounded answer [1]",
+                        "basedOnCourseMaterial", true, "citations", knowledge.retrieve("Question", 5).getChunks()
+                                .stream().map(chunk -> java.util.Map.of("document", chunk.getDocumentName(),
+                                        "pageRange", chunk.getPageRange())).toList()));
+            }), q -> knowledge.retrieve(q, 5));
+            Fixture fixture = create(llm, knowledge);
+            SwingUtilities.invokeAndWait(() -> fixture.panel.setAttachments(java.util.List.of(first, second, first)));
+            var done = new CountDownLatch(1);
+            start(fixture, done);
+            assertTrue(done.await(10, TimeUnit.SECONDS));
+            assertTrue(background.get());
+            assertEquals(2, knowledge.snapshot().documents().size());
+            SwingUtilities.invokeAndWait(() -> {
+                assertIdle(fixture);
+                assertFalse(children(fixture.panel).stream().anyMatch(c -> c instanceof JButton b && "×".equals(b.getText())));
+                var reply = field(fixture.panel, "conversation", ConversationView.class).messages().stream()
+                        .filter(card -> card.reply() != null).findFirst().orElseThrow().reply();
+                assertEquals(2, reply.sources().size());
+                assertTrue(reply.sources().stream().allMatch(source -> !source.testData() && !source.excerpts().isEmpty()));
+            });
+            var next = new CountDownLatch(1);
+            start(fixture, next);
+            assertTrue(next.await(5, TimeUnit.SECONDS));
+            SwingUtilities.invokeAndWait(fixture.panel::dispose);
+        }
+    }
+
+    @Test void failedAttachmentStopsAnsweringCanRetryAndKeepsPreviousLibrary() throws Exception {
+        try (var knowledge = new com.cst3492.assistant.knowledge.ProjectKnowledgeBase()) {
+            knowledge.ingest(pdf("existing.pdf"));
+            var damaged = attachmentDirectory.resolve("retry.pdf");
+            java.nio.file.Files.writeString(damaged, "broken PDF");
+            var calls = new java.util.concurrent.atomic.AtomicInteger();
+            Fixture fixture = create(request -> { calls.incrementAndGet(); return new MockChatService().reply(request); }, knowledge);
+            SwingUtilities.invokeAndWait(() -> fixture.panel.setAttachments(java.util.List.of(damaged)));
+            var done = new CountDownLatch(1);
+            start(fixture, done);
+            assertTrue(done.await(5, TimeUnit.SECONDS));
+            assertEquals(0, calls.get());
+            assertFalse(knowledge.retrieve("JDBC", 5).isEmpty());
+            SwingUtilities.invokeAndWait(() -> {
+                assertIdle(fixture);
+                assertTrue(children(fixture.panel).stream().anyMatch(c -> c instanceof JButton b && "×".equals(b.getText())));
+            });
+            pdf("retry.pdf");
+            var retry = new CountDownLatch(1);
+            start(fixture, retry);
+            assertTrue(retry.await(5, TimeUnit.SECONDS));
+            assertEquals(1, calls.get());
+            assertEquals(2, knowledge.snapshot().documents().size());
+            SwingUtilities.invokeAndWait(fixture.panel::dispose);
+        }
+    }
+
+    @Test void closedProjectWithPendingAttachmentCannotImport() throws Exception {
+        try (var knowledge = new com.cst3492.assistant.knowledge.ProjectKnowledgeBase()) {
+            Fixture fixture = create(new MockChatService(), knowledge);
+            var path = pdf("pending.pdf");
+            SwingUtilities.invokeAndWait(() -> {
+                fixture.panel.setAttachments(java.util.List.of(path));
+                fixture.closed.set(true);
+                var input = (JTextArea) fixture.panel.getInput();
+                input.setText("Question");
+                input.getActionMap().get("sendQuestion").actionPerformed(new ActionEvent(input, 0, "send"));
+                assertNull(field(fixture.panel, "worker", ChatRequestWorker.class));
+                fixture.panel.dispose();
+            });
+            assertTrue(knowledge.snapshot().documents().isEmpty());
+        }
+    }
+
+    @Test void removingPendingCardDoesNotDeleteAlreadyImportedFile() throws Exception {
+        try (var knowledge = new com.cst3492.assistant.knowledge.ProjectKnowledgeBase()) {
+            var path = pdf("already-imported.pdf");
+            knowledge.ingest(path);
+            Fixture fixture = create(new MockChatService(), knowledge);
+            SwingUtilities.invokeAndWait(() -> {
+                fixture.panel.setAttachments(java.util.List.of(path));
+                children(fixture.panel).stream().filter(c -> c instanceof JButton b && "×".equals(b.getText()))
+                        .map(c -> (JButton) c).findFirst().orElseThrow().doClick();
+                fixture.panel.dispose();
+            });
+            assertEquals(1, knowledge.snapshot().documents().size());
+            assertFalse(knowledge.retrieve("JDBC", 5).isEmpty());
+        }
+    }
+
+    @Test void chatContainsNoLegacyManagerOrPopupEntry() throws Exception {
+        try (var knowledge = new com.cst3492.assistant.knowledge.ProjectKnowledgeBase()) {
+            Fixture fixture = create(new MockChatService(), knowledge);
+            SwingUtilities.invokeAndWait(() -> {
+                assertFalse(children(fixture.panel).stream().anyMatch(c -> c instanceof KnowledgeBasePanel
+                        || c instanceof javax.swing.JComboBox || c instanceof javax.swing.JPopupMenu));
+                var texts = children(fixture.panel).stream().filter(c -> c instanceof JButton)
+                        .map(c -> ((JButton) c).getText()).toList();
+                assertFalse(texts.contains("Import course file"));
+                assertFalse(texts.contains("Remove"));
+                assertFalse(texts.contains("⋯"));
+                assertTrue(texts.contains("+"));
+                fixture.panel.dispose();
+            });
+        }
+    }
+
+    @Test void alreadyImportedAttachmentIsNotParsedAgainWhenSending() throws Exception {
+        try (var knowledge = new com.cst3492.assistant.knowledge.ProjectKnowledgeBase()) {
+            var path = pdf("cached.pdf");
+            knowledge.ingest(path);
+            // If sending reparses this file, it fails; the successful index must remain usable.
+            java.nio.file.Files.writeString(path, "changed to damaged content");
+            var calls = new java.util.concurrent.atomic.AtomicInteger();
+            Fixture fixture = create(request -> {
+                calls.incrementAndGet();
+                assertFalse(knowledge.retrieve("JDBC", 5).isEmpty());
+                return new MockChatService().reply(request);
+            }, knowledge);
+            SwingUtilities.invokeAndWait(() -> fixture.panel.setAttachments(java.util.List.of(path, path)));
+            var done = new CountDownLatch(1);
+            start(fixture, done);
+            assertTrue(done.await(5, TimeUnit.SECONDS));
+            assertEquals(1, calls.get());
+            assertEquals(1, knowledge.snapshot().documents().size());
+            SwingUtilities.invokeAndWait(() -> { assertIdle(fixture); fixture.panel.dispose(); });
+        }
+    }
+
+    @Test void waitingImportDoesNotBlockEdtAndCancellationPreventsQueuedImport() throws Exception {
+        try (var knowledge = new com.cst3492.assistant.knowledge.ProjectKnowledgeBase()) {
+            Fixture fixture = create(request -> { fail("Cancelled import must not call service"); return null; }, knowledge);
+            var path = pdf("cancelled.pdf");
+            SwingUtilities.invokeAndWait(() -> fixture.panel.setAttachments(java.util.List.of(path)));
+            var mutations = knowledge.getClass().getDeclaredField("mutations");
+            mutations.setAccessible(true);
+            CountDownLatch done = new CountDownLatch(1);
+            synchronized (mutations.get(knowledge)) {
+                ChatRequestWorker worker = start(fixture, done);
+                // A queued import is blocked on a background lock; the EDT still processes input.
+                SwingUtilities.invokeAndWait(() -> {
+                    assertFalse(field(fixture.panel, "send", JButton.class).isEnabled());
+                    worker.cancel(true);
+                });
+            }
+            assertTrue(done.await(5, TimeUnit.SECONDS));
+            assertTrue(knowledge.snapshot().documents().isEmpty());
+            SwingUtilities.invokeAndWait(() -> { assertIdle(fixture); fixture.panel.dispose(); });
+        }
+    }
 
     private ChatRequestWorker start(Fixture fixture, CountDownLatch done) throws Exception {
         AtomicReference<ChatRequestWorker> result = new AtomicReference<>();

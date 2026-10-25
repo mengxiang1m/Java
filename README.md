@@ -604,9 +604,47 @@ in separate packages under `com.cst3492.assistant` and agree on small interfaces
 between components. Avoid putting application logic into the Tool Window factory.
 Use the shared Gradle build; keep personal IDE settings and secrets out of Git.
 
-Document ingestion and retrieval are available through A's standalone service.
-Real LLM integration is available with local configuration; the UI factory still
-needs to connect per-question course retrieval.
+### Project course library and RAG
+
+Use **+** inside the composer to select one or more PDF, PPTX or PPT files.
+Selection only creates pending attachment cards: no parsing or import occurs yet.
+Use **×** to remove a pending file; this does not remove an already imported document.
+Enter/Send snapshots the question, editor code and attachments, imports the files
+in the existing background request, then calls the chat service only after every
+import succeeds. Blank questions still require text before sending.
+On success the cards clear; on error/cancellation they remain available for retry.
+Failed batches retain earlier successful imports and stop before calling the LLM.
+Reimporting the same canonical path replaces its index rather than duplicating it.
+During sending, attachment selection/removal and submission are disabled.
+
+There is no course-management bar, popup, or separate management window in chat.
+Pending attachments appear as compact wrapping pills; long names are ellipsized
+with the full path available on hover. Previously imported canonical paths are
+not parsed again when attached. Their existing indexed version remains in use
+until project close; a future settings entry can expose explicit refresh/removal.
+The underlying knowledge-base import/remove APIs remain available.
+Encrypted, unreadable, damaged and unsupported documents have distinct import
+errors. Image-only documents can import successfully with zero searchable chunks;
+OCR is not supported. Failed reimports preserve the previous successful index.
+
+The library is shared within one project and is **in memory only**: reimport files
+after restarting/closing the project. Import/remove do not make model requests.
+Do not import very large files: application-level file/memory limits and index
+persistence are not implemented yet.
+
+With the existing `DEEPSEEK_API_KEY` environment configuration, each question now
+retrieves up to five chunks from this library before calling B's answer service.
+The question and exact editor code remain separate inputs. The same retrieved
+snapshot is used for prompting and citation validation. Empty retrieval falls back
+to general knowledge with B's disclaimer; retrieval failures are errors, not empty
+results. Sources show verified PDF pages or PPT/PPTX slides, never BM25 percentages.
+Without a key, or with `CST3492_CHAT_MODE=mock`, chat stays in Mock mode: importing
+does not turn mock responses into grounded answers. Existing slash commands remain
+UI fixtures, with explicitly marked test sources.
+
+Offline tests use generated local documents and injected fake LLM clients. Real
+API tests remain opt-in with `-PrunLlmIntegrationTests=true` and a configured key;
+do not enable that option for offline verification.
 
 Version references: [JetBrains Gradle plugin documentation](https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html),
 [platform Java/build compatibility](https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html),

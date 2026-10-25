@@ -61,7 +61,12 @@ public final class KnowledgeBaseService {
     /** Returns whether an imported document was removed. Also works after the file is deleted. */
     public synchronized boolean removeDocument(Path path) throws IOException {
         Objects.requireNonNull(path, "path");
-        Path identity = Files.exists(path) ? path.toRealPath() : path.toAbsolutePath().normalize();
+        Path absolute = path.toAbsolutePath().normalize();
+        // A deleted file cannot resolve itself, but its parent can still expand Windows
+        // short-path aliases (and directory symlinks) used by the original import.
+        Path identity = Files.exists(path) ? path.toRealPath()
+                : Files.exists(absolute.getParent())
+                ? absolute.getParent().toRealPath().resolve(absolute.getFileName()) : absolute;
         if (!documents.containsKey(identity)) {
             return false;
         }

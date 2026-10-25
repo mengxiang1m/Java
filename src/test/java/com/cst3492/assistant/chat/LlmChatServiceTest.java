@@ -14,6 +14,28 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 class LlmChatServiceTest {
+    @Test
+    void retrievalFailureDoesNotCallLlmOrBecomeEmptyResult() {
+        var service = new LlmChatService(new AnswerGenerationService(CONFIG,
+                (config, prompt) -> { fail("Retrieval failed before generation"); return ""; }),
+                question -> { throw new IllegalStateException("private retrieval details"); });
+        assertThrows(LlmChatService.RetrievalFailureException.class, () -> service.reply("JDBC"));
+    }
+
+    @Test
+    void sixthChunkIsNeitherPromptedNorAcceptedAsCitation() {
+        var chunks = java.util.stream.IntStream.rangeClosed(1, 6).mapToObj(i ->
+                new RetrievedChunk("Lecture.pdf", "p." + i, "chunk-marker-" + i, 1)).toList();
+        var service = new LlmChatService(new AnswerGenerationService(CONFIG, (config, prompt) -> {
+            assertTrue(prompt.getUser().contains("chunk-marker-5"));
+            assertFalse(prompt.getUser().contains("chunk-marker-6"));
+            return "{\"answer\":\"Answer\",\"basedOnCourseMaterial\":true,\"citations\":["
+                    + "{\"document\":\"Lecture.pdf\",\"pageRange\":\"p.6\"}]}";
+        }), question -> new RetrievalResult(chunks));
+        var reply = service.reply("JDBC");
+        assertTrue(reply.sources().isEmpty());
+        assertTrue(reply.text().contains(PromptTemplate.GENERAL_KNOWLEDGE_DISCLAIMER));
+    }
     private static final LlmConfig CONFIG = LlmConfig.deepseek("unused-unit-test-value");
 
     private LlmChatService service(String response, RetrievalResult retrieval) {
@@ -47,8 +69,10 @@ class LlmChatServiceTest {
                               {"document":"Lecture.pptx","pageRange":"slide 5"}]}
                 """, retrieval).reply("Question");
         assertEquals("Course answer [1] [2]", reply.text());
-        assertEquals(List.of(new CourseSource("Lecture.pdf", CourseSource.Type.PDF_PAGE, 3, false),
-                new CourseSource("Lecture.pptx", CourseSource.Type.PPT_SLIDE, 5, false)), reply.sources());
+        assertEquals(List.of(new CourseSource("Lecture.pdf", CourseSource.Type.PDF_PAGE, 3, false,
+                        List.of(new CourseSource.Excerpt("PDF content", 1.0))),
+                new CourseSource("Lecture.pptx", CourseSource.Type.PPT_SLIDE, 5, false,
+                        List.of(new CourseSource.Excerpt("PPT content", 1.0)))), reply.sources());
     }
 
     @Test

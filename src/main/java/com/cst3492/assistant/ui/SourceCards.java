@@ -9,7 +9,7 @@ import java.awt.BorderLayout;
 import java.util.List;
 import java.util.function.Consumer;
 
-/** Collapsible metadata only. Excerpts, scores and document destinations are not in CourseSource. */
+/** Collapsible source metadata and verbatim retrieval evidence; no inferred destinations. */
 final class SourceCards extends JPanel {
     private final JButton toggle;
     private final JPanel items = new JPanel();
@@ -55,7 +55,8 @@ final class SourceCards extends JPanel {
             setBorder(JBUI.Borders.emptyBottom(8));
             JPanel surface = ChatUi.card(ChatUi.BACKGROUND);
             surface.setLayout(new BorderLayout(0, JBUI.scale(6)));
-            MarkdownView title = new MarkdownView(source.documentName(), false, null);
+            MarkdownView title = new MarkdownView(source.displayName(), false, null);
+            title.setToolTipText(source.documentName());
             javax.swing.text.SimpleAttributeSet bold = new javax.swing.text.SimpleAttributeSet();
             javax.swing.text.StyleConstants.setBold(bold, true);
             title.getStyledDocument().setCharacterAttributes(0, title.getDocument().getLength(), bold, false);
@@ -71,9 +72,30 @@ final class SourceCards extends JPanel {
             summary.add(toggle, BorderLayout.SOUTH);
             surface.add(summary, BorderLayout.CENTER);
             details.setOpaque(false);
-            WrappingLabel note = new WrappingLabel("Source metadata only. No excerpt, relevance score or document destination was supplied.");
-            note.setForeground(ChatUi.MUTED);
-            details.add(note, BorderLayout.CENTER);
+            JPanel evidence = new JPanel(new ChatColumnLayout());
+            evidence.setOpaque(false);
+            boolean hasText = false;
+            for (CourseSource.Excerpt excerpt : source.excerpts()) {
+                if (excerpt.score() != null) {
+                    WrappingLabel score = new WrappingLabel("Retrieval score: " + excerpt.score()
+                            + " (raw score, not confidence)");
+                    score.setForeground(ChatUi.MUTED);
+                    evidence.add(score);
+                }
+                if (!excerpt.text().isBlank()) {
+                    hasText = true;
+                    // Plain text: preserve evidence, including Markdown-like text and indentation.
+                    MarkdownView text = new MarkdownView(excerpt.text(), false, null);
+                    text.getAccessibleContext().setAccessibleName("Retrieved text excerpt");
+                    evidence.add(text);
+                }
+            }
+            if (!hasText) {
+                WrappingLabel note = new WrappingLabel("当前来源未提供文本摘录");
+                note.setForeground(ChatUi.MUTED);
+                evidence.add(note);
+            }
+            details.add(evidence, BorderLayout.CENTER);
             JButton copyButton = ChatUi.button("Copy citation", false);
             copyButton.addActionListener(event -> copy.accept(source.documentName() + " — " + location
                     + (source.testData() ? " [TEST DATA - not evidence]" : "")));

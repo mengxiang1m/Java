@@ -5,6 +5,9 @@ import com.cst3492.ta.llm.LlmConfig;
 import com.cst3492.ta.llm.OpenAiCompatibleClient;
 
 import java.util.Map;
+import java.util.function.Function;
+import com.cst3492.ta.core.RetrievalResult;
+import com.cst3492.ta.rag.KnowledgeBaseService;
 
 /** Reads configuration without making a model request or retaining a key in UI labels. */
 public final class ChatServiceFactory {
@@ -13,12 +16,18 @@ public final class ChatServiceFactory {
     public record Selection(ChatService service, String description) { }
 
     public static Selection create(Map<String, String> environment) {
+        // Compatibility for standalone callers; the Tool Window uses its project-owned library.
+        KnowledgeBaseService knowledge = new KnowledgeBaseService();
+        return create(environment, question -> knowledge.retrieve(question, 5));
+    }
+
+    public static Selection create(Map<String, String> environment, Function<String, RetrievalResult> retrieve) {
         String key = environment.getOrDefault("DEEPSEEK_API_KEY", "").strip();
         if ("mock".equalsIgnoreCase(environment.get("CST3492_CHAT_MODE")) || key.isEmpty()) {
             return new Selection(new MockChatService(), "Mock mode — no AI request will be sent.");
         }
         return new Selection(new LlmChatService(new AnswerGenerationService(
-                LlmConfig.deepseek(key), new OpenAiCompatibleClient())),
-                "DeepSeek configured — no course retrieval connected.");
+                LlmConfig.deepseek(key), new OpenAiCompatibleClient()), retrieve),
+                "DeepSeek configured — project course retrieval connected.");
     }
 }
