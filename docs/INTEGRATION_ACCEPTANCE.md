@@ -58,22 +58,25 @@ select an account-authorized model and enter their key locally. Public setup
 values are stored under the user's configuration directory; API keys are not saved.
 
 Automated tests and mock mode do not establish live-provider or visual results.
-Operator-reported checks are recorded below; screenshots and final visual review
-remain outstanding for member D's report.
+Operator-reported checks are recorded below. Their screenshots have now been
+collected and inspected; [the presentation evidence](PRESENTATION_EVIDENCE.md)
+contains images and English captions for member D's report and slides.
 
 ## Operator-reported live checks, 25 October 2026
 
-The operator tested commit `e8fa724` on Linux in the IDEA sandbox, through the
+The operator initially tested commit `e8fa724` on Linux in the IDEA sandbox, through the
 Tongji endpoint `https://agi.tongji.edu.cn/v1`, with configured model name
 `DeepSeek-V4.1-Flash`. This is the platform's model identifier; no API key is
-recorded here. The following results are the operator's reports, not observations
-from an automated browser or desktop session.
+recorded here. The final selected-code scenario was repeated after restarting
+with the fix included in `918d9dc`. Results combine the operator's reports with
+inspection of their captured UI regions; they were not produced by automated
+desktop interaction.
 
 | Scenario | Reported evidence | Status |
 |---|---|---|
-| Course question: JDBC transaction rollback | Answer quotes the imported Demo text; operator confirmed three source files and physical page/slide 2 | Passed; screenshot pending |
-| Unmatched question: java.time.LocalDate formatting | Exact general-knowledge disclaimer shown; operator confirmed no Sources list | Passed; screenshot pending |
-| Question about selected Demo.java method | Answer correctly says success=true commits and success=false rolls back | Functional result confirmed; citation-display recheck pending |
+| Course question: JDBC transaction rollback | Operator confirmed the answer; screenshots show the question and PDF/PPT/PPTX sources at physical page/slide 2 | Passed; evidence collected |
+| Unmatched question: java.time.LocalDate formatting | Screenshot shows the exact disclaimer; operator confirmed no Sources list | Passed; evidence collected |
+| Question about selected Demo.java method | Post-fix screenshot shows attached code and the correct commit/rollback branches, without the earlier unverified reference | Passed after restart; evidence collected |
 | Native layout, focus, light/dark themes | Not yet reported | Pending |
 
 The selected-code answer also exposed a display mismatch: an unverified `[1]`
@@ -81,5 +84,8 @@ remained next to a general-knowledge disclaimer. The parser now removes such
 references when the answer cannot be grounded, preserving code and valid course
 answers. Three new regression tests first reproduced the mismatch, then passed;
 the complete 148-test target suite and plugin packaging/structure checks passed.
-The operator must restart the sandbox, reimport the Demo documents and repeat
-the selected-code question before the final screenshot is accepted.
+The operator restarted, repeated the selected-code question and supplied the
+final screenshot. Its visible answer no longer contains the earlier unsupported
+reference. The archived images are unchanged copies of the operator's captures.
+The source-list and general-answer crops do not show every part of the original
+conversation; the operator's confirmations provide the remaining context.

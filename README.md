@@ -199,6 +199,7 @@ assignment references both providers, without mandating one.
 
 - [Integration evidence and configuration](docs/INTEGRATION_ACCEPTANCE.md)
 - [Chinese step-by-step human acceptance](docs/MANUAL_ACCEPTANCE.zh-CN.md)
+- [Captured screenshots and English presentation captions](docs/PRESENTATION_EVIDENCE.md)
 - Start the three-stage credential and visual-check wizard with
   `bash scripts/manual-acceptance.sh`. It never saves an API key.
 
