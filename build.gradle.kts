@@ -6,6 +6,8 @@
 group = "com.cst3492"
 version = "0.1.0"
 
+apply(from = "gradle/rag-dependencies.gradle.kts")
+
 val localIdePath = providers.gradleProperty("localIdePath")
     .orElse("D:/IntelliJ/IntelliJ IDEA 2026.2.2")
 
@@ -20,10 +22,6 @@ dependencies {
     // Required by the main branch's module architecture.
     compileOnly("com.google.code.gson:gson:2.10.1")
     testImplementation("com.google.code.gson:gson:2.10.1")
-
-    testImplementation(platform("org.junit:junit-bom:5.13.4"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     intellijPlatform {
         local(localIdePath)
@@ -49,6 +47,7 @@ java {
 // Preserve the existing Java 21 bytecode target.
 tasks.withType<JavaCompile>().configureEach {
     options.release.set(21)
+    options.encoding = "UTF-8"
 }
 
 intellijPlatform {

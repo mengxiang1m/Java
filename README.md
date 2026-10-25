@@ -1,4 +1,195 @@
 # CST3492 Assistant
+
+## Module A: document ingestion and keyword retrieval
+
+`com.cst3492.ta.rag.KnowledgeBaseService` is a standalone, in-memory service.
+It imports **PDF, PPTX and legacy PPT**, indexes course knowledge chunks, and
+returns the existing `RetrievedChunk` / `RetrievalResult` contracts. No IntelliJ
+instance, API key, LLM call, external search server, or course-file download is
+needed to test it. The current chat factory does not yet call this service;
+the UI team can integrate it using the example below.
+
+### Run A's tests without IntelliJ
+
+Use a full JDK 25, as required by the existing Gradle Wrapper. Our source still
+targets Java 21 (`--release 21`). Set variables only in the current PowerShell:
+
+```powershell
+$env:JAVA_HOME = 'C:\path\to\jdk-25'
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+.\gradlew.bat -p rag-standalone test
+```
+
+The independent build compiles the **same core/RAG source files** used by the
+plugin. Parser versions and JUnit dependencies are shared through
+`gradle/rag-dependencies.gradle.kts`. Gradle and Maven dependencies are downloaded
+on the first run; after caching them, `--offline` can be added. The HTML test
+report is `rag-standalone/build/reports/tests/test/index.html`.
+
+On Windows the standalone Gradle daemon uses `file.encoding=COMPAT` so its JVM
+argument files match the launcher's native encoding, including Chinese user and
+project paths. Java source compilation and test content explicitly use UTF-8.
+No system locale or global environment configuration is changed.
+
+Tests generate small real PDF/PPTX/PPT documents in temporary directories. They
+cover original page numbers, blank pages, nested groups/tables, Chinese/English,
+Unicode chunk boundaries, BM25 ranking, top-k, no matches, invalid inputs,
+encrypted/corrupt files, replacement, removal, immutable results and concurrent
+imports. They do not require a live LLM or mutate personal course documents.
+
+### Try a real document
+
+From the repository folder, after setting `JAVA_HOME`:
+
+```powershell
+.\gradlew.bat --% -p rag-standalone run --args="\"C:/course/Lecture.pdf\" \"JDBC transaction\" 5"
+.\gradlew.bat --% -p rag-standalone run --args="\"C:/course/Lecture.pptx\" \"数据库连接\""
+```
+
+PowerShell's `--%` preserves the nested quotes needed by the Windows batch wrapper,
+including questions and paths with spaces. Replace the example paths with real
+files. `build` also creates a runnable distribution ZIP under
+`rag-standalone/build/distributions/`, with a launcher and its parser dependencies.
+
+Arguments are one document path, one question, and an optional positive `topK`
+(default 5). Output includes the import counts, original document identity,
+physical page/slide, BM25 score and full chunk text. No match prints
+`No relevant course material found.`; an import error exits unsuccessfully with
+an explanation. Documents without extractable text produce a zero-chunk report.
+
+### API and integration with B/C
+
+```java
+KnowledgeBaseService knowledge = new KnowledgeBaseService();
+IngestionReport report = knowledge.ingest(Path.of("C:/course/Lecture.pdf"));
+knowledge.ingest(Path.of("C:/course/Database.pptx"));
+
+RetrievalResult retrieval = knowledge.retrieve(question); // default top five
+// Or: knowledge.retrieve(question, 3)
+AssistantQuery query = new AssistantQuery(question, selectedCode, retrieval);
+AssistantAnswer answer = generationService.generate(query);
+
+boolean removed = knowledge.removeDocument(report.path());
+```
+
+`ingest` returns `IngestionReport(path, documentName, pageCount, chunkCount)`;
+`hasExtractableText()` distinguishes an empty/scanned file from extracted text.
+Import errors throw `DocumentIngestionException` with `getReason()` equal to
+`UNSUPPORTED_FORMAT`, `UNREADABLE_FILE`, `ENCRYPTED_DOCUMENT`, or
+`MALFORMED_DOCUMENT`. Removal returns false for a document not present. Callers
+should handle I/O exceptions at the import/removal boundary.
+
+Keep one service per course/project and call `retrieve` for **each new question**.
+For the current UI adapter, create `new LlmChatService(generationService,
+knowledge.retrieve(request.question()))` for that query; its existing constructor
+holds a single-query snapshot. Parsing/indexing should run off the Swing EDT.
+Import and removal atomically publish an immutable search snapshot. An earlier
+`RetrievalResult` remains unchanged after updates.
+
+### Algorithm, source identity and limits
+
+- PDFBox **3.0.8** extracts PDF text. Apache POI **6.0.0** extracts PPT/PPTX text
+  boxes, table cells and nested groups. Speaker notes and images are excluded.
+- Physical pages/slides start at one, including blank ones. Text is divided into
+  windows of at most **1,000 Unicode code points**, with **150** overlapping code
+  points. Chunks never cross a page or slide. PDF locations are `p.N`; PPT/PPTX
+  locations are `slide N`, matching the current citation adapter.
+- A document's canonical full path is both its internal identity and its returned
+  `documentName`. This retains the real filename and distinguishes equal filenames
+  in different folders. Reimporting the same path replaces its old chunks; a failed
+  import retains the previous index. A successful zero-text reimport removes stale
+  searchable content. No index survives a process restart.
+- Tokenization uses Unicode NFKC normalization, case-insensitive English words,
+  camel-case/acronym/underscore identifier parts, and adjacent Chinese bigrams.
+  Single-character Chinese queries use indexed individual characters; longer
+  Chinese queries use bigrams to avoid matching an unrelated shared character.
+  Common question stopwords are ignored; Java keywords such as `for`, `do` and
+  `this` remain searchable.
+- An inverted index stores term frequencies and chunk lengths. BM25 uses
+  **k1 = 1.2, b = 0.75**, rewarding rare matching terms and accounting for chunk
+  length and term frequency. Matching is OR across query terms; extra matched
+  terms contribute to the score. Repeated query words are counted once. Only
+  positive scores are returned, ordered by descending score, then document path,
+  physical page and chunk order. Scores are not probabilities.
+  Imports rebuild the index snapshot; searches visit only postings for the query
+  terms before sorting the matching chunks.
+- Null/blank, stopword-only, and unmatched questions return
+  `RetrievalResult.empty()`. `topK <= 0` throws `IllegalArgumentException`.
+  No artificial sources are created. The existing LLM module handles the
+  general-knowledge disclaimer when this result is empty.
+- This is lexical retrieval: there is no embedding/synonym inference or OCR.
+  Encrypted files are rejected. The service reads a selected local document into
+  memory; a future upload UI must define suitable file-size/context policies.
+
+### A's acceptance on 25 October 2026
+
+The acceptance scope is Member A's service and its F0 document-processing and
+retrieval responsibilities. The service and tests compile the actual shared
+core/RAG sources, without an IntelliJ SDK or a live LLM.
+
+| A deliverable | Implementation and acceptance evidence | Result |
+|---|---|---|
+| PDF, PPTX and PPT import | Real generated documents; physical pages/slides, blank pages, tables and grouped shapes | Passed |
+| Keyword search and relevance ranking | Bilingual tokenization, inverted index, BM25, top-k and deterministic ties | Passed |
+| Knowledge chunks with document and page information | Real source paths, original one-based locations and page-local Unicode chunks | Passed |
+| No relevant results | Empty, stopword-only and unmatched queries return no sources; CLI displays an explicit message | Passed |
+| Independently testable service and unit tests | Standalone build uses the same production sources; 38 JUnit test cases pass | Passed |
+
+Linux re-verification:
+
+- Linux x86_64; the existing PyCharm installation supplies a full JBR/JDK
+  **25.0.2**. Gradle **9.6.0** and all dependencies were reused from the mounted
+  Windows user cache. No IDE installation or global configuration change was needed.
+- `clean build installDist --offline --no-daemon` succeeded: **38 tests passed;
+  0 failures, 0 errors, 0 skipped** (18 ingestion, 8 ranking/tokenization,
+  12 service cases). All compiled production classes have major version **65**
+  (Java 21). The HTML test report remains under the path documented above.
+- The new root-directory regression test first failed with the original
+  `NullPointerException`, then passed after checking for a readable regular file
+  before accessing the filename. Root-directory inputs now return
+  `DocumentIngestionException` with reason `UNREADABLE_FILE` on the public API.
+- The installed distribution was run with **JDK 21** and the real four-page
+  assignment PDF. It imported 10 chunks; `retrieval augmented` returned physical
+  pages `p.1` and `p.3` in descending score order. An unmatched question printed
+  `No relevant course material found.` and exited with code 0. Root-directory
+  and missing-file inputs printed a friendly import error and exited with code 1,
+  without an exception stack trace.
+
+To reproduce this Linux pass from the repository folder, using this workstation's
+existing tools and cache (these paths are workstation-specific):
+
+```bash
+export JAVA_HOME="$HOME/.local/share/JetBrains/Toolbox/apps/pycharm/jbr"
+export GRADLE_USER_HOME='/media/qianshun/Windows-SSD/Users/徐千顺/.gradle'
+moduleAGradle="$GRADLE_USER_HOME/wrapper/dists/gradle-9.6.0-bin/42k10rwplmzkhuboz9kdazi7s/gradle-9.6.0/bin/gradle"
+bash "$moduleAGradle" -p rag-standalone --offline --no-daemon clean build installDist
+
+moduleALauncher=rag-standalone/build/install/cst3492-rag-standalone/bin/cst3492-rag-standalone
+JAVA_HOME="$HOME/.local/share/java-exam/jdk-21" bash "$moduleALauncher" '../AY202627S1-CST3492-Assignment-A.pdf' 'retrieval augmented' 2
+JAVA_HOME="$HOME/.local/share/java-exam/jdk-21" bash "$moduleALauncher" '../AY202627S1-CST3492-Assignment-A.pdf' 'qwertyunmatchedxyz' 2
+JAVA_HOME="$HOME/.local/share/java-exam/jdk-21" bash "$moduleALauncher" / JDBC 2
+```
+
+The last command intentionally exits with code 1. The PDF is a local smoke-test
+input outside the repository; automated tests generate their own documents and
+do not need it. Invoking the cached Gradle distribution directly also avoids
+changing the Unix wrapper's CRLF line endings in this shared Windows worktree.
+In a normal Linux checkout with LF line endings, set `JAVA_HOME` to a full JDK 25
+and use `bash ./gradlew -p rag-standalone clean build installDist` instead.
+
+The earlier documented Windows verification used Zulu JDK 25.0.5 and passed
+37 tests, before the new regression case. The Windows JDK under `../.tools/jdk25/`
+and the earlier Windows launcher check are separate from this Linux pass.
+
+The full IntelliJ plugin build and UI acceptance were not run. The plugin build
+still targets IDEA 2026.2 (`262.*`) and defaults to the Windows path
+`D:/IntelliJ/IntelliJ IDEA 2026.2.2`; this Linux pass only reused PyCharm's JDK.
+Team integration must import documents off the EDT, retrieve for each new
+question, pass the result to the existing LLM adapter and verify the actual UI
+and citations in a compatible IDEA sandbox. The shared core contracts are unchanged.
+The existing merge-conflict markers in `.gitignore` also remain a repository
+integration cleanup item; they predate this A-only change.
+
 ## Team Architecture
 
 The project is organised into five modules under the shared `com.cst3492.ta` architecture:
@@ -76,8 +267,8 @@ integration later; no new RAG API is invented. Only grounded citations matching
 retrieved metadata are mapped. Supported locations are single PDF `p.3`/`Page 3`
 or PPT `Slide 5`. Missing/unknown positions, ranges, or PDF-style PPT page labels
 are omitted rather than guessed. B's answer body remains intact, so unsupported
-locations may retain inline markers without a UI Sources list. A's real retrieval
-and an agreed range representation are still needed for full course citations.
+locations may retain inline markers without a UI Sources list. A's service now
+returns supported single-page/slide locations; per-question UI wiring remains.
 
 ### Deterministic tests and manual live test
 
@@ -123,14 +314,12 @@ cancel/failure recovery, editor context, and stale/disposed guards are unchanged
 Attached Java code remains separate above the input in a compact two-row preview;
 its original text and the question draft are preserved when context changes.
 
-**File upload is deferred.** `ta.rag` currently has only `package-info.java`, not a
-file ingestion/parser service. `ChatRequest` carries a question and selected code;
-`AssistantQuery` accepts those plus an already-built `RetrievalResult`. There is no
-file input contract, extractor, supported-format/size validation policy, or bounded
-LLM context assembly. The composer reserves a hidden left action slot for a future
-attachment integration, but shows no nonfunctional paperclip/chooser and reads no
-files. A must provide the actual ingestion/retrieval entry point and agree on file
-size, extraction-error and context/token limits before this can become real upload.
+**File upload is deferred in the UI.** A's `KnowledgeBaseService` now provides real
+file ingestion and retrieval (see Module A above). `ChatRequest` still carries a
+question and selected code; the composer has no file chooser. The UI integration
+must import chosen paths off the EDT, handle the documented errors, and retrieve
+fresh context for each question. File-size/context limits remain a UI integration
+decision before enabling uploads.
 
 For manual acceptance, test the icon-only send control at narrow/wide widths,
 multiline growth and capped scrolling, Enter/Shift+Enter, empty input, loading,
@@ -415,8 +604,9 @@ in separate packages under `com.cst3492.assistant` and agree on small interfaces
 between components. Avoid putting application logic into the Tool Window factory.
 Use the shared Gradle build; keep personal IDE settings and secrets out of Git.
 
-This prototype includes no retrieval or document ingestion. Real LLM integration
-is available with local configuration; course retrieval still awaits module A.
+Document ingestion and retrieval are available through A's standalone service.
+Real LLM integration is available with local configuration; the UI factory still
+needs to connect per-question course retrieval.
 
 Version references: [JetBrains Gradle plugin documentation](https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html),
 [platform Java/build compatibility](https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html),
