@@ -31,6 +31,9 @@ public final class AnswerParser {
 
     private static final Gson GSON = new Gson();
     private static final Pattern JSON_OBJECT = Pattern.compile("\\{.*}", Pattern.DOTALL);
+    private static final Pattern UNVERIFIED_REFERENCE = Pattern.compile(
+            "(?s)(```.*?(?:```|\\z)|`[^`\\r\\n]*`)"
+                    + "|[ \\t]*(?<![\\p{L}\\p{N}_\\]])\\[\\d+\\](?!\\()");
 
     /**
      * Parses the model output, cross-checking any citations against the
@@ -54,7 +57,8 @@ public final class AnswerParser {
                     boolean grounded = Boolean.TRUE.equals(dto.basedOnCourseMaterial)
                             && !citations.isEmpty()
                             && retrieval.isRelevant();
-                    return new AssistantAnswer(dto.answer, citations, grounded);
+                    return grounded ? new AssistantAnswer(dto.answer, citations, true)
+                            : AssistantAnswer.generalKnowledge(withoutUnverifiedReferences(dto.answer));
                 }
             } catch (Exception ignored) {
                 // Fall through to the plain-text handling below.
@@ -64,7 +68,13 @@ public final class AnswerParser {
         // The model ignored the JSON instruction: treat the whole text as a
         // general-knowledge answer. Without a validated citation it can never
         // be grounded, regardless of what the retrieval returned.
-        return AssistantAnswer.generalKnowledge(rawContent.trim());
+        return AssistantAnswer.generalKnowledge(withoutUnverifiedReferences(rawContent.trim()));
+    }
+
+    /** Drop source-number tokens from ungrounded prose while preserving code and links. */
+    private static String withoutUnverifiedReferences(String text) {
+        return UNVERIFIED_REFERENCE.matcher(text).replaceAll(match ->
+                match.group(1) == null ? "" : Matcher.quoteReplacement(match.group(1)));
     }
 
     /**

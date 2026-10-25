@@ -16,6 +16,52 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AnswerGenerationServiceTest {
 
     @Test
+    void plainTextFallbackDoesNotLeaveUnverifiedSourceNumbers() {
+        var service = new AnswerGenerationService(LlmConfig.deepseek("unused-test-key"),
+                (config, prompt) -> "On success call commit; otherwise rollback [1].");
+        var retrieval = new RetrievalResult(List.of(new RetrievedChunk("Lecture.pdf", "p.2", "JDBC rollback", 1)));
+
+        var answer = service.generate("Explain the method", retrieval, "connection.rollback();");
+
+        assertFalse(answer.isBasedOnCourseMaterial());
+        assertTrue(answer.getCitations().isEmpty());
+        assertTrue(answer.getContent().startsWith("On success call commit; otherwise rollback."));
+        assertFalse(answer.getContent().contains("[1]"));
+        assertTrue(answer.getContent().contains(PromptTemplate.GENERAL_KNOWLEDGE_DISCLAIMER));
+    }
+
+    @Test
+    void generalKnowledgeJsonCannotRetainCourseReferencesEvenIfMetadataMatches() {
+        var service = new AnswerGenerationService(LlmConfig.deepseek("unused-test-key"),
+                (config, prompt) -> """
+                        {"answer":"Use rollback [1].", "basedOnCourseMaterial":false,
+                         "citations":[{"document":"Lecture.pdf","pageRange":"p.2"}]}
+                        """);
+        var retrieval = new RetrievalResult(List.of(new RetrievedChunk("Lecture.pdf", "p.2", "JDBC rollback", 1)));
+
+        var answer = service.generate("Explain the method", retrieval, null);
+
+        assertFalse(answer.isBasedOnCourseMaterial());
+        assertTrue(answer.getCitations().isEmpty());
+        assertTrue(answer.getContent().startsWith("Use rollback."));
+        assertFalse(answer.getContent().contains("[1]"));
+    }
+
+    @Test
+    void removingUnverifiedReferencesPreservesCodeIndicesAndMarkdownLinks() {
+        String code = "`values[1]`\n```java\nint value = values[1];\n```";
+        String body = "Use rollback [1].\n" + code + "\nArray: values[1]. Link: [1](https://example.com).";
+        var service = new AnswerGenerationService(LlmConfig.deepseek("unused-test-key"), (config, prompt) -> body);
+
+        var answer = service.generate("Explain", RetrievalResult.empty(), null);
+
+        assertTrue(answer.getContent().startsWith("Use rollback."));
+        assertTrue(answer.getContent().contains(code));
+        assertTrue(answer.getContent().contains("Array: values[1]."));
+        assertTrue(answer.getContent().contains("[1](https://example.com)"));
+    }
+
+    @Test
     void generatesGroundedAnswerWithCitations() {
         LlmClient fakeClient = (config, prompt) ->
                 "{\"answer\":\"Use [1].\","
