@@ -23,6 +23,52 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ChatVisualComponentsTest {
+    @Test
+    void attachmentPillsShareRowsAndWrapWhenComposerNarrows() throws Exception {
+        SwingUtilities.invokeAndWait(() -> {
+            var composer = new ChatComposer(new com.intellij.ui.components.JBTextArea(), ChatUi.sendButton());
+            composer.showAttachments(List.of(java.nio.file.Path.of("a.pdf"), java.nio.file.Path.of("b.pptx")),
+                    ignored -> { }, true);
+            var pills = buttons(composer).stream().filter(b -> "×".equals(b.getText()))
+                    .map(Component::getParent).toList();
+            for (int width : new int[]{500, 130}) {
+                composer.setSize(width, 240);
+                for (int pass = 0; pass < 4; pass++) {
+                    composer.doLayout();
+                    all(composer).stream().filter(c -> c instanceof Container)
+                            .forEach(c -> ((Container) c).doLayout());
+                }
+                if (width == 500) assertEquals(pills.get(0).getY(), pills.get(1).getY());
+                else assertTrue(pills.get(1).getY() > pills.get(0).getY());
+            }
+        });
+    }
+    @Test
+    void narrowComposerCapsAttachmentHeightAndKeepsRemovalInsideViewport() throws Exception {
+        SwingUtilities.invokeAndWait(() -> {
+            var input = new com.intellij.ui.components.JBTextArea();
+            input.setLineWrap(true);
+            var composer = new ChatComposer(input, ChatUi.sendButton());
+            var paths = java.util.stream.IntStream.range(0, 10).mapToObj(i -> java.nio.file.Path.of(
+                    "very_long_course_filename_".repeat(8) + i + ".pdf")).toList();
+            composer.showAttachments(paths, ignored -> { }, true);
+            composer.setSize(220, composer.getPreferredSize().height);
+            for (int i = 0; i < 3; i++) {
+                composer.doLayout();
+                all(composer).stream().filter(c -> c instanceof Container).forEach(c -> ((Container) c).doLayout());
+            }
+            assertTrue(composer.inputScroll().getHeight() >= 28);
+            var scroll = all(composer).stream()
+                    .filter(c -> c instanceof javax.swing.JScrollPane s && s != composer.inputScroll())
+                    .map(c -> (javax.swing.JScrollPane) c).findFirst().orElseThrow();
+            assertTrue(scroll.getHeight() <= com.intellij.util.ui.JBUI.scale(96));
+            assertEquals(scroll.getViewport().getWidth(), scroll.getViewport().getView().getWidth());
+            assertEquals(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER, scroll.getHorizontalScrollBarPolicy());
+            assertTrue(buttons(composer).stream().filter(b -> "×".equals(b.getText())).allMatch(b -> b.getParent().getWidth() <= 220));
+            composer.showAttachments(List.of(), ignored -> { }, true);
+            assertFalse(scroll.isVisible());
+        });
+    }
     @org.junit.jupiter.api.BeforeAll
     static void enablePlatformIconRendering() {
         // Plain unit tests do not run IDE startup, which normally activates IconLoader.

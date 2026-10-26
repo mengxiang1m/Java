@@ -51,7 +51,10 @@ final class ChatUi {
                         : getModel().isRollover() ? ACCENT.brighter() : ACCENT
                         : getModel().isRollover() ? BORDER : CARD);
                 int radius = primary ? getWidth() : JBUI.scale(10);
-                g.fillRoundRect(0, 0, getWidth(), getHeight(), radius, radius);
+                if (!Boolean.TRUE.equals(getClientProperty("assistant.quiet"))
+                        || getModel().isRollover() || getModel().isPressed()) {
+                    g.fillRoundRect(0, 0, getWidth(), getHeight(), radius, radius);
+                }
                 if (isFocusOwner()) {
                     g.setColor(primary ? TEXT : ACCENT);
                     g.drawRoundRect(1, 1, getWidth() - 3, getHeight() - 3, radius, radius);

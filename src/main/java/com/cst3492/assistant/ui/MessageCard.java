@@ -17,6 +17,12 @@ final class MessageCard extends JPanel {
     private final ChatReply reply;
     private final SourceCards sources;
     private final MarkdownView body;
+    private final javax.swing.Timer copyReset;
+    private final JButton copyResponse;
+    // This short label must size naturally; a width-constrained wrapping label
+    // cannot grow its initially empty action area when feedback appears.
+    private final javax.swing.JLabel copyFeedback = new javax.swing.JLabel("");
+    private boolean disposed;
 
     MessageCard(ChatMessage message, ChatReply reply, Runnable retry, Consumer<String> copy) {
         super(new BorderLayout());
@@ -43,7 +49,42 @@ final class MessageCard extends JPanel {
         heading.setFont(ChatUi.font().deriveFont(Font.BOLD));
         heading.setForeground(reply != null && reply.status() == ChatReply.Status.ERROR ? ChatUi.ERROR
                 : user ? ChatUi.MUTED : ChatUi.ACCENT);
-        surface.add(heading, BorderLayout.NORTH);
+        JPanel header = new JPanel(new BorderLayout(JBUI.scale(4), 0));
+        header.setOpaque(false);
+        header.add(heading, BorderLayout.CENTER);
+        boolean canCopy = reply != null && reply.status() != ChatReply.Status.ERROR
+                && message.role() == ChatMessage.Role.ASSISTANT;
+        copyResponse = canCopy ? ChatUi.button("", false) : null;
+        copyReset = new javax.swing.Timer(1600, event -> resetCopyFeedback());
+        copyReset.setRepeats(false);
+        if (copyResponse != null) {
+            copyResponse.setIcon(com.intellij.icons.AllIcons.Actions.Copy);
+            copyResponse.setToolTipText("Copy response");
+            copyResponse.getAccessibleContext().setAccessibleName("Copy response");
+            copyResponse.setPreferredSize(JBUI.size(28, 28));
+            copyResponse.setBorder(JBUI.Borders.empty());
+            copyResponse.putClientProperty("assistant.quiet", true);
+            JPanel actions = new JPanel(new BorderLayout(JBUI.scale(4), 0));
+            actions.setOpaque(false);
+            copyFeedback.setForeground(ChatUi.MUTED);
+            actions.add(copyFeedback, BorderLayout.CENTER);
+            actions.add(copyResponse, BorderLayout.EAST);
+            header.add(actions, BorderLayout.EAST);
+            copyResponse.addActionListener(event -> {
+                if (disposed) return;
+                try {
+                    // Use complete original Markdown, never the rendered or visible text.
+                    copy.accept(reply.text());
+                    copyResponse.setToolTipText("Copy response");
+                    copyFeedback.setText("Copied");
+                } catch (RuntimeException failure) {
+                    copyFeedback.setText("Copy failed");
+                    copyResponse.setToolTipText("Could not copy. Try again.");
+                }
+                if (isDisplayable()) copyReset.restart();
+            });
+        }
+        surface.add(header, BorderLayout.NORTH);
 
         sources = reply != null && !reply.sources().isEmpty() ? new SourceCards(reply.sources(), copy) : null;
         body = new MarkdownView(message.text(), reply != null, sources == null ? null : () -> {
@@ -71,6 +112,29 @@ final class MessageCard extends JPanel {
     ChatReply reply() { return reply; }
     MarkdownView body() { return body; }
     SourceCards sources() { return sources; }
+    JButton copyResponseButton() { return copyResponse; }
+    String copyFeedbackText() { return copyFeedback.getText(); }
+
+    private void resetCopyFeedback() {
+        if (disposed) return;
+        copyFeedback.setText("");
+        if (copyResponse != null) copyResponse.setToolTipText("Copy response");
+    }
+
+    void dispose() {
+        disposed = true;
+        copyReset.stop();
+    }
+
+    @Override public void removeNotify() {
+        copyReset.stop();
+        super.removeNotify();
+    }
+
+    @Override public void addNotify() {
+        super.addNotify();
+        resetCopyFeedback();
+    }
 
     @Override
     public Dimension getMaximumSize() { return new Dimension(Integer.MAX_VALUE, getPreferredSize().height); }

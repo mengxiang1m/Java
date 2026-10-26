@@ -10,11 +10,12 @@ import com.cst3492.ta.rag.KnowledgeBaseService;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.function.Function;
+import java.util.concurrent.CancellationException;
 
-/** Retrieves for each question, calls B, and maps verified citations. Call off the EDT. */
+/** Query-time retrieval and UI adapter for B's existing service. Call off the EDT. */
 public final class LlmChatService implements ChatService {
     private static final Pattern PAGE = Pattern.compile("(?i)(?:p\\.?|page|pages)\\s*([1-9]\\d*)");
     private static final Pattern SLIDE = Pattern.compile("(?i)slides?\\s*([1-9]\\d*)");
@@ -25,28 +26,47 @@ public final class LlmChatService implements ChatService {
         this(generation, RetrievalResult.empty());
     }
 
-    /** Compatibility constructor for callers supplying a fixed single-query snapshot. */
+    /** Boundary for a future caller supplying A's genuine retrieval output for this query. */
     public LlmChatService(AnswerGenerationService generation, RetrievalResult retrieval) {
-        this.generation = Objects.requireNonNull(generation);
-        RetrievalResult snapshot = new RetrievalResult(List.copyOf(Objects.requireNonNull(retrieval).getChunks()));
-        this.retrieve = question -> snapshot;
+        this(generation, fixedSnapshot(retrieval));
     }
 
-    /** Import and chat must share this knowledge base for the lifetime of the Tool Window. */
+    private static Function<String, RetrievalResult> fixedSnapshot(RetrievalResult retrieval) {
+        RetrievalResult snapshot = new RetrievalResult(List.copyOf(Objects.requireNonNull(retrieval).getChunks()));
+        return question -> snapshot;
+    }
+
+    /** Retains main's shared-service integration entry point. */
     public LlmChatService(AnswerGenerationService generation, KnowledgeBaseService knowledge) {
+        this(generation, question -> knowledge.retrieve(question, 5));
+    }
+
+    /** Query-time boundary: production supplies the project's shared knowledge base. */
+    public LlmChatService(AnswerGenerationService generation, Function<String, RetrievalResult> retrieve) {
         this.generation = Objects.requireNonNull(generation);
-        this.retrieve = Objects.requireNonNull(knowledge)::retrieve;
+        this.retrieve = Objects.requireNonNull(retrieve);
     }
 
     @Override
     public ChatReply reply(ChatRequest request) {
-        RetrievalResult retrieval = retrieve.apply(request.question());
+        checkCancelled();
+        RetrievalResult retrieval;
+        try {
+            // B's default prompt sends at most five chunks. Validate exactly that same pool.
+            retrieval = new RetrievalResult(List.copyOf(Objects.requireNonNull(
+                    retrieve.apply(request.question())).getChunks().stream().limit(5).toList()));
+        } catch (CancellationException exception) {
+            throw exception;
+        } catch (RuntimeException exception) {
+            throw new RetrievalFailureException(exception);
+        }
+        checkCancelled();
         AssistantAnswer answer = generation.generate(new AssistantQuery(
                 request.question(), request.editorContext(), retrieval));
         // A general-knowledge answer is still a successful answer, not NO_SOURCES or ERROR.
         List<CourseSource> sources = answer.isBasedOnCourseMaterial()
                 ? answer.getCitations().stream().filter(citation -> matchesRetrieval(citation, retrieval))
-                .map(LlmChatService::source).filter(Objects::nonNull).distinct().toList()
+                .map(citation -> source(citation, retrieval)).filter(Objects::nonNull).distinct().toList()
                 : List.of();
         return new ChatReply(answer.getContent(), ChatReply.Status.NORMAL, sources);
     }
@@ -57,11 +77,19 @@ public final class LlmChatService implements ChatService {
                         && Objects.equals(trim(chunk.getPageRange()), trim(citation.getPageRange())));
     }
 
+    private static void checkCancelled() {
+        if (Thread.currentThread().isInterrupted()) throw new CancellationException();
+    }
+
+    public static final class RetrievalFailureException extends RuntimeException {
+        public RetrievalFailureException(Throwable cause) { super("Course retrieval failed", cause); }
+    }
+
     private static String trim(String text) {
         return text == null || text.isBlank() ? null : text.strip();
     }
 
-    private static CourseSource source(Citation citation) {
+    private static CourseSource source(Citation citation, RetrievalResult retrieval) {
         String document = citation.getDocumentName().strip();
         String name = document.toLowerCase(Locale.ROOT);
         CourseSource.Type type;
@@ -81,7 +109,12 @@ public final class LlmChatService implements ChatService {
             return null;
         }
         try {
-            return new CourseSource(document, type, Integer.parseInt(matcher.group(1)), false);
+            List<CourseSource.Excerpt> excerpts = retrieval.getChunks().stream()
+                    .filter(chunk -> chunk.getDocumentName().strip().equals(document)
+                            && Objects.equals(trim(chunk.getPageRange()), trim(citation.getPageRange())))
+                    .map(chunk -> new CourseSource.Excerpt(chunk.getContent(), chunk.getScore()))
+                    .toList();
+            return new CourseSource(document, type, Integer.parseInt(matcher.group(1)), false, excerpts);
         } catch (NumberFormatException exception) {
             return null;
         }

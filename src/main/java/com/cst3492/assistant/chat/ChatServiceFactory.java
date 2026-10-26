@@ -9,6 +9,8 @@ import com.cst3492.ta.rag.KnowledgeBaseService;
 
 import java.util.Map;
 import java.util.Locale;
+import java.util.function.Function;
+import com.cst3492.ta.core.RetrievalResult;
 
 /** Reads configuration without making a model request or retaining a key in UI labels. */
 public final class ChatServiceFactory {
@@ -21,6 +23,10 @@ public final class ChatServiceFactory {
     }
 
     public static Selection create(Map<String, String> environment, KnowledgeBaseService knowledge) {
+        return create(environment, question -> knowledge.retrieve(question, 5));
+    }
+
+    public static Selection create(Map<String, String> environment, Function<String, RetrievalResult> retrieve) {
         if ("mock".equalsIgnoreCase(environment.get("CST3492_CHAT_MODE"))) {
             return new Selection(new MockChatService(), "Mock mode — no AI request will be sent.");
         }
@@ -49,7 +55,7 @@ public final class ChatServiceFactory {
         String jsonMode = environment.get("CST3492_LLM_JSON_MODE");
         if (jsonMode != null) config.jsonMode(Boolean.parseBoolean(jsonMode));
         return new Selection(new LlmChatService(new AnswerGenerationService(
-                config.build(), new OpenAiCompatibleClient()), knowledge),
+                config.build(), new OpenAiCompatibleClient()), retrieve),
                 provider + " configured — course retrieval ready.");
     }
 

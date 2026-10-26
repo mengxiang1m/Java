@@ -4,10 +4,12 @@ import com.cst3492.assistant.chat.ChatMessage;
 import com.cst3492.assistant.chat.ChatRequest;
 import com.cst3492.assistant.chat.ChatReply;
 import com.cst3492.assistant.chat.ChatService;
-import com.cst3492.ta.rag.KnowledgeBaseService;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.Disposable;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Locale;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
@@ -29,9 +31,6 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Locale;
 
 /** One in-memory conversation per Tool Window; all UI state belongs to the EDT. */
 public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implements Disposable {
@@ -54,28 +53,46 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
     private boolean restoringComposer;
     private volatile boolean disposed;
     private ChatRequestWorker worker;
-    private final KnowledgeBaseService knowledge;
+    // Compatibility path for main's standalone import callers; production uses the project service.
+    private final com.cst3492.ta.rag.KnowledgeBaseService directKnowledge;
     private final JButton importMaterials;
     private final JBTextArea importDetails = new JBTextArea(3, 20);
     private final JBScrollPane importDetailsScroll = new JBScrollPane(importDetails);
     private DocumentImportWorker importWorker;
+    private final com.cst3492.assistant.knowledge.ProjectKnowledgeBase knowledge;
+    private final java.util.List<java.nio.file.Path> attachments = new java.util.ArrayList<>();
+    private final JButton attach = ChatUi.button("+", false);
 
     public AssistantChatPanel(Project project, ChatService service) {
         this(project, service, "Chat service ready.");
     }
 
     public AssistantChatPanel(Project project, ChatService service, String modeDescription) {
-        this(project, service, modeDescription, null);
+        this(project, service, modeDescription, (com.cst3492.assistant.knowledge.ProjectKnowledgeBase) null);
     }
 
     public AssistantChatPanel(Project project, ChatService service, String modeDescription,
-                              KnowledgeBaseService knowledge) {
+                              com.cst3492.assistant.knowledge.ProjectKnowledgeBase knowledge) {
+        this(project, service, modeDescription, knowledge, null);
+    }
+
+    /** Retains main's shared standalone knowledge-base constructor and immediate import API. */
+    public AssistantChatPanel(Project project, ChatService service, String modeDescription,
+                              com.cst3492.ta.rag.KnowledgeBaseService knowledge) {
+        this(project, service, modeDescription, null, knowledge);
+    }
+
+    private AssistantChatPanel(Project project, ChatService service, String modeDescription,
+                               com.cst3492.assistant.knowledge.ProjectKnowledgeBase knowledge,
+                               com.cst3492.ta.rag.KnowledgeBaseService directKnowledge) {
         super(new BorderLayout(0, JBUI.scale(8)));
         this.service = service;
         this.project = project;
         this.knowledge = knowledge;
+        this.directKnowledge = directKnowledge;
         status.setText(modeDescription);
         status.setForeground(ChatUi.MUTED);
+        status.setFont(ChatUi.font().deriveFont(Math.max(10f, ChatUi.font().getSize() - 1f)));
         setBackground(ChatUi.BACKGROUND);
         setBorder(JBUI.Borders.empty(12));
 
@@ -91,11 +108,21 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
         input.setForeground(ChatUi.TEXT);
         input.setCaretColor(ChatUi.ACCENT);
         input.setFont(ChatUi.font());
-        JBPanel<?> composer = new JBPanel<>(new BorderLayout(0, JBUI.scale(6)));
+        JBPanel<?> composer = new JBPanel<>(new BorderLayout(0, JBUI.scale(3)));
         composer.setOpaque(false);
         composer.setBorder(JBUI.Borders.emptyTop(6));
         unifiedComposer = new ChatComposer(input, send);
-        importMaterials = knowledge == null ? null : ChatUi.button("Import materials", false);
+        if (knowledge != null) {
+            attach.setPreferredSize(JBUI.size(32, 32));
+            attach.setMinimumSize(JBUI.size(32, 32));
+            attach.setBorder(JBUI.Borders.empty());
+            attach.putClientProperty("assistant.quiet", true);
+            attach.setToolTipText("Attach PDF, PPTX or PPT; imported when you send");
+            attach.getAccessibleContext().setAccessibleName("Attach course files");
+            attach.addActionListener(event -> chooseAttachments());
+            unifiedComposer.addAttachmentAction(attach);
+        }
+        importMaterials = directKnowledge == null ? null : ChatUi.button("Import materials", false);
         if (importMaterials != null) {
             importMaterials.setToolTipText("Import PDF, PPTX or PPT course materials (up to 50 MiB per file)");
             importMaterials.addActionListener(event -> chooseMaterials());
@@ -153,17 +180,21 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
         loading.setPreferredSize(new Dimension(0, JBUI.scale(3)));
         loading.getAccessibleContext().setAccessibleName("Request in progress");
         feedback.add(loading, BorderLayout.NORTH);
-        JBPanel<?> feedbackText = new JBPanel<>(new BorderLayout(0, JBUI.scale(4)));
-        feedbackText.setOpaque(false);
-        feedbackText.add(status, BorderLayout.NORTH);
-        importDetails.setEditable(false);
-        importDetails.setLineWrap(true);
-        importDetails.setWrapStyleWord(true);
-        importDetails.getAccessibleContext().setAccessibleName("Course material import details");
-        importDetailsScroll.setVisible(false);
-        importDetailsScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        feedbackText.add(importDetailsScroll, BorderLayout.CENTER);
-        feedback.add(feedbackText, BorderLayout.CENTER);
+        if (directKnowledge != null) {
+            JBPanel<?> feedbackText = new JBPanel<>(new BorderLayout(0, JBUI.scale(4)));
+            feedbackText.setOpaque(false);
+            feedbackText.add(status, BorderLayout.NORTH);
+            importDetails.setEditable(false);
+            importDetails.setLineWrap(true);
+            importDetails.setWrapStyleWord(true);
+            importDetails.getAccessibleContext().setAccessibleName("Course material import details");
+            importDetailsScroll.setVisible(false);
+            importDetailsScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            feedbackText.add(importDetailsScroll, BorderLayout.CENTER);
+            feedback.add(feedbackText, BorderLayout.CENTER);
+        } else {
+            feedback.add(status, BorderLayout.CENTER);
+        }
         composer.add(feedback, BorderLayout.SOUTH);
         add(composer, BorderLayout.SOUTH);
 
@@ -204,7 +235,7 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
     /** Uses the same knowledge base as live chat. The caller invokes this on the EDT. */
     public void importDocuments(List<Path> paths) {
         requireEdt();
-        if (knowledge == null || paths.isEmpty() || !canUpdateUi() || sending || restoringComposer || importWorker != null) {
+        if (directKnowledge == null || paths.isEmpty() || !canUpdateUi() || sending || restoringComposer || importWorker != null) {
             return;
         }
         importMaterials.setEnabled(false);
@@ -212,7 +243,7 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
         status.setText("Importing course materials…");
         loading.setVisible(true);
         importDetailsScroll.setVisible(false);
-        importWorker = new DocumentImportWorker(knowledge, paths,
+        importWorker = new DocumentImportWorker(directKnowledge, paths,
                 pending -> pending == importWorker && canUpdateUi(), summary -> {
                     status.setText(summary.message());
                     String details = String.join("\n", summary.problems());
@@ -247,6 +278,32 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
         }
     }
 
+    private void chooseAttachments() {
+        if (!canUpdateUi() || sending) return;
+        var descriptor = new com.intellij.openapi.fileChooser.FileChooserDescriptor(true, false, false, false, false, true)
+                .withTitle("Attach course PDF, PPTX or PPT")
+                .withFileFilter(file -> file.getExtension() != null && java.util.Set.of("pdf", "ppt", "pptx")
+                        .contains(file.getExtension().toLowerCase(java.util.Locale.ROOT)));
+        var files = com.intellij.openapi.fileChooser.FileChooser.chooseFiles(descriptor, project, null);
+        setAttachments(java.util.Arrays.stream(files).map(file -> file.toNioPath()).toList());
+    }
+
+    void setAttachments(java.util.List<java.nio.file.Path> paths) {
+        requireEdt();
+        if (!canUpdateUi() || sending || knowledge == null) return;
+        for (var path : paths) {
+            var normalized = path.toAbsolutePath().normalize();
+            if (!attachments.contains(normalized)) attachments.add(normalized);
+        }
+        refreshAttachments();
+    }
+
+    private void refreshAttachments() {
+        unifiedComposer.showAttachments(java.util.List.copyOf(attachments), path -> {
+            if (canUpdateUi() && !sending) { attachments.remove(path); refreshAttachments(); }
+        }, !sending);
+    }
+
     /** Called on the EDT after the existing Tool Window has been activated. Never sends. */
     public void setEditorContext(String selectedCode) {
         requireEdt();
@@ -274,11 +331,12 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
             return;
         }
         ChatRequest request = new ChatRequest(question, editorContext);
+        var submitted = java.util.List.copyOf(attachments);
 
         sending = true;
-        if (importMaterials != null) {
-            importMaterials.setEnabled(false);
-        }
+        if (importMaterials != null) importMaterials.setEnabled(false);
+        attach.setEnabled(false);
+        refreshAttachments();
         send.setEnabled(false);
         input.setEditable(false);
         append(new ChatMessage(ChatMessage.Role.USER, question));
@@ -289,8 +347,35 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
         status.setText("Sending…");
         loading.setVisible(true);
 
-        worker = new ChatRequestWorker(service, request, pending -> pending == worker && canUpdateUi(), reply -> {
-            appendReply(reply, request);
+        ChatService submission = current -> {
+            for (var path : submitted) {
+                if (Thread.currentThread().isInterrupted()) throw new java.util.concurrent.CancellationException();
+                try {
+                    if (java.nio.file.Files.size(path) > DocumentImportWorker.MAX_FILE_BYTES) {
+                        return new ChatReply(path.getFileName() + ": exceeds the 50 MiB file limit.",
+                                ChatReply.Status.ERROR, java.util.List.of());
+                    }
+                    var identity = path.toRealPath();
+                    boolean imported = knowledge.snapshot().documents().stream()
+                            .anyMatch(report -> report.path().equals(identity));
+                    if (!imported) knowledge.ingest(identity);
+                } catch (java.util.concurrent.CancellationException cancelled) {
+                    throw cancelled;
+                } catch (java.io.IOException failure) {
+                    return new ChatReply(path.getFileName() + ": " + KnowledgeBasePanel.failureMessage(failure),
+                            ChatReply.Status.ERROR, java.util.List.of());
+                } catch (RuntimeException failure) {
+                    return new ChatReply(path.getFileName() + ": " + KnowledgeBasePanel.failureMessage(failure),
+                            ChatReply.Status.ERROR, java.util.List.of());
+                }
+            }
+            if (Thread.currentThread().isInterrupted()) throw new java.util.concurrent.CancellationException();
+            return service.reply(current);
+        };
+        if (!submitted.isEmpty()) status.setText("Importing attachments, then answering…");
+        worker = new ChatRequestWorker(submission, request, pending -> pending == worker && canUpdateUi(), reply -> {
+            if (reply.status() != ChatReply.Status.ERROR) attachments.removeAll(submitted);
+            appendReply(reply, request, submitted);
             if (canUpdateUi()) {
                 status.setText(ChatReplyPresentation.statusText(reply));
             }
@@ -315,10 +400,14 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
         restoringComposer = true;
         try {
             loading.setVisible(false);
+            if (!canRestoreComposer()) return;
+            refreshAttachments();
+            if (!canRestoreComposer()) return;
+            attach.setEnabled(true);
+            if (!canRestoreComposer()) return;
+            if (canRestoreComposer() && importMaterials != null) importMaterials.setEnabled(true);
+            if (!canRestoreComposer()) return;
             send.setEnabled(true);
-            if (canRestoreComposer() && importMaterials != null) {
-                importMaterials.setEnabled(true);
-            }
             if (!canRestoreComposer()) {
                 return;
             }
@@ -340,9 +429,9 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
         appendCard(message, null, null);
     }
 
-    private void appendReply(ChatReply reply, ChatRequest request) {
+    private void appendReply(ChatReply reply, ChatRequest request, java.util.List<java.nio.file.Path> submitted) {
         appendCard(ChatReplyPresentation.cardMessage(reply), reply, () -> {
-            if (!canUpdateUi() || sending || restoringComposer) {
+            if (!canUpdateUi() || sending || restoringComposer || importWorker != null) {
                 return;
             }
             editorContext = request.editorContext();
@@ -350,6 +439,9 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
             contextPreview.setCaretPosition(0);
             contextPanel.setVisible(!editorContext.isEmpty());
             input.setText(request.question());
+            attachments.clear();
+            attachments.addAll(submitted);
+            refreshAttachments();
             sendQuestion();
         });
     }
@@ -383,11 +475,10 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
 
     private void cancelPendingRequest() {
         requireEdt();
+        conversation.dispose();
         DocumentImportWorker pendingImport = importWorker;
         importWorker = null;
-        if (pendingImport != null) {
-            pendingImport.cancel(true);
-        }
+        if (pendingImport != null) pendingImport.cancel(true);
         ChatRequestWorker pending = worker;
         worker = null;
         sending = false;

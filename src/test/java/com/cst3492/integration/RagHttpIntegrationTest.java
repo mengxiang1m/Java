@@ -41,8 +41,9 @@ class RagHttpIntegrationTest {
             var service = ChatServiceFactory.create(environment(endpoint, "tongji"), knowledge).service();
             var reply = service.reply("What is the difference between checked and unchecked exceptions?");
             assertEquals("Checked exceptions must be caught or declared [1].", reply.text());
-            assertEquals(List.of(new CourseSource(document.toRealPath().toString(), CourseSource.Type.PDF_PAGE, 5, false)),
-                    reply.sources());
+            assertSourceWithExcerpt(reply.sources(),
+                    new CourseSource(document.toRealPath().toString(), CourseSource.Type.PDF_PAGE, 5, false),
+                    "Checked exceptions must be caught or declared. Runtime exceptions are unchecked.");
             assertEquals("json_object", endpoint.request().get().getAsJsonObject("response_format").get("type").getAsString());
             assertFalse(reply.text().contains(PromptTemplate.GENERAL_KNOWLEDGE_DISCLAIMER));
         }
@@ -64,8 +65,9 @@ class RagHttpIntegrationTest {
             var reply = service.reply(new ChatRequest("Explain JDBC", code));
 
             assertEquals("Use rollback [1]", reply.text());
-            assertEquals(List.of(new CourseSource(source, extension.equals("pdf")
-                    ? CourseSource.Type.PDF_PAGE : CourseSource.Type.PPT_SLIDE, 2, false)), reply.sources());
+            assertSourceWithExcerpt(reply.sources(), new CourseSource(source, extension.equals("pdf")
+                    ? CourseSource.Type.PDF_PAGE : CourseSource.Type.PPT_SLIDE, 2, false),
+                    "JDBC transaction rollback");
             JsonObject request = endpoint.request().get();
             assertEquals("account-allowed-model", request.get("model").getAsString());
             String user = request.getAsJsonArray("messages").get(1).getAsJsonObject().get("content").getAsString();
@@ -109,6 +111,24 @@ class RagHttpIntegrationTest {
         var missing = ChatServiceFactory.create(Map.of("CST3492_LLM_PROVIDER", "tongji",
                 "DEEPSEEK_API_KEY", "unused-deepseek-test-key"), new KnowledgeBaseService());
         assertInstanceOf(com.cst3492.assistant.chat.MockChatService.class, missing.service());
+    }
+
+    /** Metadata and verbatim evidence are stable contracts; the exact BM25 value is not. */
+    private static void assertSourceWithExcerpt(List<CourseSource> sources, CourseSource expected,
+                                                String expectedText) {
+        assertEquals(1, sources.size());
+        CourseSource actual = sources.getFirst();
+        assertAll("validated source and retrieved evidence",
+                () -> assertEquals(expected.documentName(), actual.documentName()),
+                () -> assertEquals(expected.type(), actual.type()),
+                () -> assertEquals(expected.number(), actual.number()),
+                () -> assertEquals(expected.testData(), actual.testData()));
+        assertEquals(1, actual.excerpts().size());
+        CourseSource.Excerpt excerpt = actual.excerpts().getFirst();
+        assertEquals(expectedText, excerpt.text());
+        assertNotNull(excerpt.score(), "Real retrieval must preserve its score");
+        assertTrue(Double.isFinite(excerpt.score()), "Retrieval score must be finite");
+        assertTrue(excerpt.score() > 0, "A's matched BM25 results have positive scores");
     }
 
     private Map<String, String> environment(Endpoint endpoint, String provider) {
