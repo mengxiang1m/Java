@@ -80,6 +80,10 @@ class AssistantChatPanelLifecycleTest {
     @org.junit.jupiter.api.io.TempDir java.nio.file.Path attachmentDirectory;
 
     private java.nio.file.Path pdf(String name) throws Exception {
+        return pdf(name, "Question JDBC original course evidence");
+    }
+
+    private java.nio.file.Path pdf(String name, String text) throws Exception {
         var path = attachmentDirectory.resolve(name);
         try (var document = new org.apache.pdfbox.pdmodel.PDDocument()) {
             var page = new org.apache.pdfbox.pdmodel.PDPage();
@@ -89,7 +93,7 @@ class AssistantChatPanelLifecycleTest {
                 stream.setFont(new org.apache.pdfbox.pdmodel.font.PDType1Font(
                         org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName.HELVETICA), 12);
                 stream.newLineAtOffset(40, 700);
-                stream.showText("Question JDBC original course evidence");
+                stream.showText(text);
                 stream.endText();
             }
             document.save(path.toFile());
@@ -317,11 +321,11 @@ class AssistantChatPanelLifecycleTest {
         }
     }
 
-    @Test void alreadyImportedAttachmentIsNotParsedAgainWhenSending() throws Exception {
+    @Test void damagedReattachedFileReportsErrorAndPreservesTheSavedIndex() throws Exception {
         try (var knowledge = new com.cst3492.assistant.knowledge.ProjectKnowledgeBase()) {
             var path = pdf("cached.pdf");
             knowledge.ingest(path);
-            // If sending reparses this file, it fails; the successful index must remain usable.
+            // Explicit reattachment refreshes content; a failed refresh must retain old knowledge.
             java.nio.file.Files.writeString(path, "changed to damaged content");
             var calls = new java.util.concurrent.atomic.AtomicInteger();
             Fixture fixture = create(request -> {
@@ -333,8 +337,32 @@ class AssistantChatPanelLifecycleTest {
             var done = new CountDownLatch(1);
             start(fixture, done);
             assertTrue(done.await(5, TimeUnit.SECONDS));
-            assertEquals(1, calls.get());
+            assertEquals(0, calls.get());
             assertEquals(1, knowledge.snapshot().documents().size());
+            assertFalse(knowledge.retrieve("JDBC", 5).isEmpty());
+            SwingUtilities.invokeAndWait(() -> { assertIdle(fixture); fixture.panel.dispose(); });
+        }
+    }
+
+    @Test void reattachingUpdatedFileRefreshesKnowledgeBeforeAnswering() throws Exception {
+        try (var knowledge = new com.cst3492.assistant.knowledge.ProjectKnowledgeBase()) {
+            var path = pdf("refresh.pdf");
+            knowledge.ingest(path);
+            pdf("refresh.pdf", "JUnit new evidence");
+            var calls = new java.util.concurrent.atomic.AtomicInteger();
+            Fixture fixture = create(request -> {
+                calls.incrementAndGet();
+                assertTrue(knowledge.retrieve("JDBC", 5).isEmpty());
+                assertFalse(knowledge.retrieve("JUnit", 5).isEmpty());
+                return new MockChatService().reply(request);
+            }, knowledge);
+            SwingUtilities.invokeAndWait(() -> fixture.panel.setAttachments(java.util.List.of(path)));
+            var done = new CountDownLatch(1);
+            start(fixture, done);
+            assertTrue(done.await(5, TimeUnit.SECONDS));
+            assertEquals(1, calls.get());
+            assertTrue(knowledge.retrieve("JDBC", 5).isEmpty());
+            assertFalse(knowledge.retrieve("JUnit", 5).isEmpty());
             SwingUtilities.invokeAndWait(() -> { assertIdle(fixture); fixture.panel.dispose(); });
         }
     }

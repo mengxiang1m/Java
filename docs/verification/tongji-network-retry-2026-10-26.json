@@ -1,0 +1,90 @@
+{
+  "date": "2026-10-26",
+  "trigger": "User reported network connected; retry of saved Tongji profile",
+  "liveStatus": "BLOCKED",
+  "liveChecks": [
+    {
+      "id": "exceptions",
+      "status": "ERROR",
+      "milliseconds": 31353.6819,
+      "sources": [],
+      "error": "Failed to reach LLM endpoint: Tunnel failed, got: 502"
+    }
+  ],
+  "additionalConnectivityChecks": [
+    {
+      "route": "Windows system proxy via PowerShell",
+      "result": "HttpRequestException; no usable model response"
+    },
+    {
+      "route": "Direct PowerShell request, no proxy",
+      "result": "Timed out after 25 seconds"
+    }
+  ],
+  "successfulModelAnswers": 0,
+  "latestAutomaticInspection": {
+    "date": "2026-10-26",
+    "apiRoute": "Direct HTTPS, proxy disabled for this request only",
+    "apiStatus": 403,
+    "apiMessage": "当前网络环境不支持",
+    "vpnClient": "MotionPro",
+    "vpnSite": "vpn.tongji.cn",
+    "vpnVisibleStatus": "已断开",
+    "tapAdapter": "Disconnected",
+    "vpnAdapter": "Disabled",
+    "selectedRoute": "WLAN default route",
+    "conclusion": "Campus VPN tunnel is not connected; browser login does not establish API network access",
+    "networkSettingsChanged": false,
+    "successfulModelAnswers": 0
+  },
+  "afterVpnConnected": {
+    "checkedAt": "2026-10-26T01:46:22.3933378-05:00",
+    "vpnAdapter": "Up",
+    "apiRouteInterface": "Array Networks VPN Adapter",
+    "apiRouteNextHop": "111.187.64.1",
+    "javaWithSystemProxy": [
+      {
+        "id": "exceptions",
+        "status": "ERROR",
+        "milliseconds": 30832.3317,
+        "sources": [],
+        "error": "Failed to reach LLM endpoint: Tunnel failed, got: 502"
+      }
+    ],
+    "directHttpClient": "40 second request timeout",
+    "directEndpointProbes": [
+      {
+        "result": "TCP connection timeout after 8 seconds",
+        "port": 443,
+        "ip": "202.120.188.251"
+      },
+      {
+        "result": "TCP connection timeout after 8 seconds",
+        "port": 443,
+        "ip": "202.120.188.252"
+      }
+    ],
+    "successfulModelAnswers": 0,
+    "importedPdfs": 8,
+    "physicalPages": 195,
+    "chunks": 196,
+    "networkSettingsChanged": false
+  },
+  "resolution": {
+    "status": "RESOLVED",
+    "rootCauses": [
+      "WLAN DNS preferred over campus VPN DNS",
+      "365VPN system proxy used for the campus API"
+    ],
+    "repair": [
+      "Campus VPN IPv4 interface metric changed from automatic 25 to manual 1",
+      "Exact API hostname added to proxy bypass list"
+    ],
+    "verifiedBy": "Unchanged Java courseAcceptance runner using saved Tongji profile",
+    "liveStatus": "COMPLETE",
+    "successfulModelAnswers": 5,
+    "mockUsed": false,
+    "tlsVerificationDisabled": false,
+    "report": "tongji-live-course-results-2026-10-26.json"
+  }
+}

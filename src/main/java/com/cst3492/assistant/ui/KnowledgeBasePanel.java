@@ -21,7 +21,7 @@ final class KnowledgeBasePanel extends JPanel implements Disposable {
     private final JButton importButton = ChatUi.button("Import course file", false);
     private final JButton removeButton = ChatUi.button("Remove", false);
     private final JComboBox<IngestionReport> documents = new JComboBox<>();
-    private final WrappingLabel feedback = new WrappingLabel("Course library: not initialized (in memory only).");
+    private final WrappingLabel feedback = new WrappingLabel("Course library: not initialized.");
     private SwingWorker<String, Void> worker;
     private volatile boolean disposed;
 

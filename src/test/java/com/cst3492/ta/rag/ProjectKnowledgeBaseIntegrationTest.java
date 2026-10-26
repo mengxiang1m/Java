@@ -23,6 +23,50 @@ class ProjectKnowledgeBaseIntegrationTest {
     @TempDir Path directory;
     private final LlmConfig config = LlmConfig.deepseek("offline-test-placeholder");
 
+    @Test void projectReopensSavedKnowledgeOnFirstBackgroundQuestion() throws Exception {
+        Path store = directory.resolve("project/state.bin");
+        try (var first = new ProjectKnowledgeBase(store)) {
+            first.ingest(TestDocuments.write(directory.resolve("course.pdf"), "", "JUnit BeforeEach"));
+        }
+        try (var reopened = new ProjectKnowledgeBase(store)) {
+            assertEquals(ProjectKnowledgeBase.State.UNINITIALIZED, reopened.snapshot().state());
+            assertEquals("p.2", reopened.retrieve("单元测试前置", 5).getChunks().getFirst().getPageRange());
+            assertEquals(ProjectKnowledgeBase.State.READY, reopened.snapshot().state());
+            assertEquals(1, reopened.snapshot().documents().size());
+            assertEquals(2, reopened.snapshot().documents().getFirst().pageCount());
+        }
+    }
+
+    @Test void constructingProjectOnEdtDoesNotReadCorruptDiskAndCloseStaysSafe() throws Exception {
+        Path store = directory.resolve("bad.bin");
+        Files.writeString(store, "not a snapshot");
+        var holder = new java.util.concurrent.atomic.AtomicReference<ProjectKnowledgeBase>();
+        SwingUtilities.invokeAndWait(() -> assertDoesNotThrow(() -> holder.set(new ProjectKnowledgeBase(store))));
+        try (var kb = holder.get()) {
+            assertThrows(java.io.UncheckedIOException.class, () -> kb.retrieve("JUnit", 5));
+            assertEquals(ProjectKnowledgeBase.State.UNINITIALIZED, kb.snapshot().state());
+        }
+        assertEquals("not a snapshot", Files.readString(store));
+    }
+
+    @Test void closingProjectInvalidatesDetachedPersistentWriter() throws Exception {
+        Path store = directory.resolve("project/state.bin");
+        Path pdf = TestDocuments.write(directory.resolve("course.pdf"), "JDBC");
+        var oldProject = new ProjectKnowledgeBase(store);
+        oldProject.ingest(pdf);
+        var field = ProjectKnowledgeBase.class.getDeclaredField("backend");
+        field.setAccessible(true);
+        var detached = (KnowledgeBaseService) field.get(oldProject);
+        SwingUtilities.invokeAndWait(oldProject::close);
+        try (var reopened = new ProjectKnowledgeBase(store)) {
+            assertTrue(reopened.removeDocument(pdf));
+            assertThrows(CancellationException.class, () -> detached.ingest(pdf));
+        }
+        try (var finalProject = new ProjectKnowledgeBase(store)) {
+            assertTrue(finalProject.retrieve("JDBC", 5).isEmpty());
+        }
+    }
+
     private static String grounded(RetrievalResult result) {
         return new Gson().toJson(Map.of("answer", "Course answer [1]", "basedOnCourseMaterial", true,
                 "citations", result.getChunks().stream().map(chunk -> Map.of(

@@ -20,8 +20,9 @@ public final class RealCourseAcceptance {
     record RetrievalCheck(String id, String question, String expectedDocument, List<String> expectedPages,
                           boolean top1Correct, boolean top5Correct, double milliseconds, List<Hit> hits) { }
     record LiveCheck(String id, String status, double milliseconds, String answer, List<Hit> sources, String error) { }
+    record PersistenceCheck(int restoredDocuments, int restoredChunks, boolean retrievalIdenticalAfterReopen) { }
     record Report(String scope, List<Imported> documents, List<RetrievalCheck> retrieval,
-                  String liveStatus, List<LiveCheck> liveChecks) { }
+                  String liveStatus, List<LiveCheck> liveChecks, PersistenceCheck persistence) { }
 
     static final List<Question> QUESTIONS = List.of(
             q("primitives", "What are the eight primitive data types in Java?", "Lec-1-Java-Fundamentals.pdf", 10),
@@ -44,7 +45,14 @@ public final class RealCourseAcceptance {
             q("hybrid", "Why combine keyword search and vector search?", "Lec-5-Building-AI-Powered-Java-Applications.pdf", 26),
             q("rrf", "How does reciprocal rank fusion merge rankings?", "Lec-5-Building-AI-Powered-Java-Applications.pdf", 27),
             q("citation-check", "Why reject a citation to a passage never supplied to the model?", "Lec-5-Building-AI-Powered-Java-Applications.pdf", 28),
-            new Question("chinese", "什么是受检异常和非受检异常？", "Lec-3.1-Exceptions.pdf", List.of("p.5"), "", false),
+            new Question("chinese", "什么是受检异常和非受检异常？", "Lec-3.1-Exceptions.pdf", List.of("p.5"), "", true),
+            zh("zh-erasure", "泛型的类型擦除是如何工作的？", "Lec-3.2-Generics-and-Collections.pdf", 11, true),
+            zh("zh-junit", "单元测试的前置和后置操作是什么？", "Lec-3.4-JUnit.pdf", 4, true),
+            zh("zh-rag", "检索增强生成的四个步骤是什么？", "Lec-5-Building-AI-Powered-Java-Applications.pdf", 23, true),
+            zh("zh-hybrid", "为什么结合关键词检索和向量检索？", "Lec-5-Building-AI-Powered-Java-Applications.pdf", 26, false),
+            zh("zh-rrf", "倒数排名融合如何合并排序？", "Lec-5-Building-AI-Powered-Java-Applications.pdf", 27, false),
+            zh("zh-annotations", "注解有哪些用途？", "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf", 5, false),
+            zh("zh-inheritance", "子类会继承构造方法吗？", "Lec-2-OOP-with-Java.pdf", 19, false),
             new Question("code-context", "Explain this code and whether the checked exception must be caught or declared.",
                     "Lec-3.1-Exceptions.pdf", List.of("p.4", "p.5", "p.7"),
                     "void read() throws java.io.IOException {\n    new java.io.FileReader(\"missing.txt\").close();\n}\n", true),
@@ -53,6 +61,15 @@ public final class RealCourseAcceptance {
     private static Question q(String id, String text, String document, int page) {
         return new Question(id, text, document, List.of("p." + page), "",
                 Set.of("exceptions", "junit-lifecycle", "rag").contains(id));
+    }
+
+    private static Question zh(String id, String text, String document, int page, boolean live) {
+        return new Question(id, text, document, List.of("p." + page), "", live);
+    }
+
+    private static List<String> signature(RetrievalResult result) {
+        return result.getChunks().stream().map(chunk -> chunk.getDocumentName() + "\n" + chunk.getPageRange()
+                + "\n" + chunk.getScore() + "\n" + chunk.getContent()).toList();
     }
 
     static List<Path> courseFiles(Path directory) throws Exception {
@@ -77,7 +94,9 @@ public final class RealCourseAcceptance {
         Path directory = Path.of(args[0]);
         boolean live = Boolean.parseBoolean(args[1]);
         Path output = Path.of(args[2]);
-        var knowledge = new KnowledgeBaseService();
+        Files.createDirectories(output.toAbsolutePath().getParent());
+        Path snapshot = Files.createTempDirectory(output.toAbsolutePath().getParent(), "knowledge-").resolve("snapshot.bin");
+        var knowledge = new KnowledgeBaseService(snapshot);
         var imported = new ArrayList<Imported>();
         for (var path : courseFiles(directory)) {
             long started = System.nanoTime();
@@ -85,6 +104,15 @@ public final class RealCourseAcceptance {
             imported.add(new Imported(path.getFileName().toString(), report.pageCount(), report.chunkCount(), elapsed(started)));
         }
         if (imported.isEmpty()) throw new IllegalArgumentException("No Lec-*.pdf files found in the course directory");
+        var reopened = new KnowledgeBaseService(snapshot);
+        for (var question : QUESTIONS) {
+            if (!signature(knowledge.retrieve(question.question(), 5)).equals(signature(reopened.retrieve(question.question(), 5)))) {
+                throw new IllegalStateException("Retrieval changed after reopening persisted knowledge: " + question.id());
+            }
+        }
+        var persistence = new PersistenceCheck(reopened.documents().size(),
+                reopened.documents().stream().mapToInt(report -> report.chunkCount()).sum(), true);
+        knowledge = reopened;
         var checks = new ArrayList<RetrievalCheck>();
         for (var question : QUESTIONS) {
             long started = System.nanoTime();
@@ -131,7 +159,7 @@ public final class RealCourseAcceptance {
         Files.createDirectories(output.toAbsolutePath().getParent());
         Files.writeString(output, new GsonBuilder().setPrettyPrinting().create().toJson(
                 new Report("User-supplied real course PDFs; reference pages labelled by inspection; live answers require human review",
-                        imported, checks, liveStatus, liveChecks)));
+                        imported, checks, liveStatus, liveChecks, persistence)));
         System.out.printf("Imported %d course PDFs, %d physical pages, %d chunks.%n", imported.size(),
                 imported.stream().mapToInt(Imported::pages).sum(), imported.stream().mapToInt(Imported::chunks).sum());
         var labelled = checks.stream().filter(check -> !check.expectedPages().isEmpty()).toList();

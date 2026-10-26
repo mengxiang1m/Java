@@ -3,6 +3,11 @@
 Date: 26 October 2026 (America/Chicago).
 Integration branch: `integration/member-d-validation`.
 
+Update: bilingual retrieval and project snapshot persistence were subsequently
+implemented. See [the enhancement verification](BILINGUAL_PERSISTENCE_VERIFICATION.md)
+for the expanded Chinese question set and post-change checks. The original
+measurements below remain attributed to their earlier run.
+
 ## Configuration completed locally
 
 | Setting | Value |
@@ -20,8 +25,9 @@ the caller's environment afterwards. No key is embedded in this document,
 the scripts, source files, or result JSON. Normal IDE launches do not read this
 profile: use the configured launcher below.
 
-The account/key/model have **not** been authenticated successfully by the remote
-service. Configuration availability is not proof that the provider accepts it.
+The remote service accepted the protected key and model identifier after the
+network repair described below. Five real-model scenarios completed successfully
+through the original Java acceptance runner.
 
 ## Actual uploaded corpus
 
@@ -72,9 +78,9 @@ Examples inspected against complete source pages:
 Rankings, scores, timings and original text excerpts are archived in
 [the machine-readable real-course record](verification/tongji-real-course-results.json).
 
-## Real-provider result: blocked by network
+## Real-provider result: successful after network repair
 
-No successful real-model answer was obtained in this pass:
+The initial attempts were blocked:
 
 1. PowerShell requests to the supplied endpoint returned **HTTP 403** with
    `当前网络环境不支持` (current network environment is unsupported).
@@ -83,17 +89,37 @@ No successful real-model answer was obtained in this pass:
 3. The opt-in Java acceptance process was retried using the current Windows
    system proxy. The connection failed with **`Tunnel failed, got: 502`**.
 
-The Java pipeline did reach the generation boundary with **five retrieved chunks,
-five prompt chunks and JSON mode enabled** before the network failure. The
-runner records BLOCKED and exits unsuccessfully; it does not substitute mock
-answers or mark the remaining live scenarios as passed. It stops after the first
-provider/network failure instead of repeating it for every question.
+The connected MotionPro VPN used local DNS at `127.0.0.1`, which resolved the
+API to campus addresses `10.67.0.251` and `10.67.0.252`. Ordinary resolution
+preferred the WLAN DNS configuration and returned unreachable public addresses.
+The configured Windows proxy was also owned by 365VPN and failed its CONNECT
+request. See [the diagnosis and reversible repair](TONGJI_NETWORK_DIAGNOSIS.md).
 
-The accepted-network requirement must be resolved before testing remote answer
-quality, source selection, or whether this account can use the supplied model.
-Use a network authorized by the platform; campus/VPN access may be needed
-according to the platform's actual access policy. No proxy or VPN system settings
-were changed by this pass.
+With Windows administrator approval, the connected MotionPro IPv4 interface
+metric was changed from automatic 25 to manual 1, and the exact API hostname was
+added to the current user's proxy exceptions. Original settings were backed up
+outside Git. An ordinary DNS lookup then returned campus addresses. The original
+Java runner was repeated without a special IP override or altered TLS settings:
+**BUILD SUCCESSFUL**, **liveStatus COMPLETE**, five answers, no mock service.
+
+| Live scenario | Time | Result and displayed sources |
+|---|---|---|
+| Checked versus unchecked exceptions | 6.40 s | Answer; Exceptions PDF, pages 5 and 6 |
+| JUnit lifecycle | 2.34 s | Answer; JUnit PDF, page 4 |
+| Four steps of RAG | 2.49 s | Answer; AI-Powered Java Applications PDF, page 23 |
+| Selected Java code and checked exception | 5.79 s | Explains the declaration and caller obligation; Exceptions PDF, pages 4 and 5 |
+| Deliberately unmatched term | 3.35 s | No sources; explicit general-knowledge disclaimer |
+
+The responses were inspected against the retrieved excerpts and reference pages.
+Core explanations are consistent with them. The exceptions answer adds a broad
+generalization that unchecked exceptions signal programming bugs; that wording
+does not cover all `Error` cases and should not be treated as a perfect answer.
+This small sample verifies working generation and grounded source selection,
+not exhaustive factual accuracy. Native IDE interaction was not automated here.
+
+The full post-repair record is in
+[the live-course result](verification/tongji-live-course-results-2026-10-26.json).
+Earlier blocked attempts remain archived in the network retry record.
 
 ## Reproduce using the saved local profile
 
@@ -106,7 +132,7 @@ Run from the checkout:
 # No model request: import the real PDFs and measure retrieval.
 .\scripts\run-tongji.ps1 -Mode Retrieve
 
-# After network access is resolved: five real-model scenarios, stopping on errors.
+# With the campus VPN connected: five real-model scenarios, stopping on errors.
 .\scripts\run-tongji.ps1 -Mode Live
 
 # Start the actual IDEA sandbox with the configured model environment.
@@ -139,4 +165,6 @@ does not automate the native editor or file chooser.
   runner and opt-in task. That review did not inspect private profile contents
   or claim live connectivity.
 
-Deterministic tests passing does not change the BLOCKED real-provider status.
+The five live checks and the three launcher-state tests were repeated after the
+network repair. The deterministic Java suite counts above are from the earlier
+code verification; no production Java code changed in the network repair.

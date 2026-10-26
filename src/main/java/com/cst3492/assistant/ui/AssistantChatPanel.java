@@ -117,7 +117,7 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
             attach.setMinimumSize(JBUI.size(32, 32));
             attach.setBorder(JBUI.Borders.empty());
             attach.putClientProperty("assistant.quiet", true);
-            attach.setToolTipText("Attach PDF, PPTX or PPT; imported when you send");
+            attach.setToolTipText("Attach PDF, PPTX or PPT; imported or refreshed when you send");
             attach.getAccessibleContext().setAccessibleName("Attach course files");
             attach.addActionListener(event -> chooseAttachments());
             unifiedComposer.addAttachmentAction(attach);
@@ -356,9 +356,8 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
                                 ChatReply.Status.ERROR, java.util.List.of());
                     }
                     var identity = path.toRealPath();
-                    boolean imported = knowledge.snapshot().documents().stream()
-                            .anyMatch(report -> report.path().equals(identity));
-                    if (!imported) knowledge.ingest(identity);
+                    // Explicit reattachment refreshes the persisted version; failed imports retain it.
+                    knowledge.ingest(identity);
                 } catch (java.util.concurrent.CancellationException cancelled) {
                     throw cancelled;
                 } catch (java.io.IOException failure) {

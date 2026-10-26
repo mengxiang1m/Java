@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
-/** Deterministic lexical matching; no network service, model, or dictionary needed. */
+/** Deterministic lexical matching with query-only bilingual course terminology. */
 final class KeywordTokenizer {
     private static final Pattern WORD = Pattern.compile("\\p{IsHan}+|[\\p{IsLatin}\\p{N}_]+");
     private static final Pattern IDENTIFIER_BOUNDARY = Pattern.compile(
@@ -28,7 +28,9 @@ final class KeywordTokenizer {
 
     Set<String> queryTerms(String text) {
         // Sort to keep floating-point summation independent of query word order.
-        return new TreeSet<>(tokenize(text, true));
+        var terms = new TreeSet<>(tokenize(text, true));
+        terms.addAll(tokenize(CourseQueryExpansion.englishTerms(text), true));
+        return terms;
     }
 
     private List<String> tokenize(String text, boolean query) {

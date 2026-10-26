@@ -28,7 +28,9 @@ HTTP responses, not a live model. Current findings and evidence are recorded in
 
 ## Module A: document ingestion and keyword retrieval
 
-`com.cst3492.ta.rag.KnowledgeBaseService` is a standalone, in-memory service.
+`com.cst3492.ta.rag.KnowledgeBaseService` is a standalone service. Its default
+constructor is memory-only; `KnowledgeBaseService(Path snapshotFile)` restores
+and saves extracted course content across restarts.
 It imports **PDF, PPTX and legacy PPT**, indexes course knowledge chunks, and
 returns the existing `RetrievedChunk` / `RetrievalResult` contracts. No IntelliJ
 instance, API key, LLM call, external search server, or course-file download is
@@ -124,13 +126,19 @@ Import and removal atomically publish an immutable search snapshot. An earlier
   `documentName`. This retains the real filename and distinguishes equal filenames
   in different folders. Reimporting the same path replaces its old chunks; a failed
   import retains the previous index. A successful zero-text reimport removes stale
-  searchable content. No index survives a process restart.
+  searchable content. Optional disk snapshots preserve reports and chunks across
+  restarts; the inverted index is rebuilt from saved text without reparsing sources.
 - Tokenization uses Unicode NFKC normalization, case-insensitive English words,
   camel-case/acronym/underscore identifier parts, and adjacent Chinese bigrams.
   Single-character Chinese queries use indexed individual characters; longer
   Chinese queries use bigrams to avoid matching an unrelated shared character.
   Common question stopwords are ignored; Java keywords such as `for`, `do` and
   `this` remain searchable.
+- Chinese queries also expand recognized course terms into English search terms
+  using `CourseQueryExpansion` (exceptions, generics, JUnit, RAG, OOP and related
+  topics). Longest phrase matching distinguishes unchecked from checked exceptions.
+  Expansion affects retrieval only: the original question and source passages
+  remain intact. This bounded glossary is not general translation or vector search.
 - An inverted index stores term frequencies and chunk lengths. BM25 uses
   **k1 = 1.2, b = 0.75**, rewarding rare matching terms and accounting for chunk
   length and term frequency. Matching is OR across query terms; extra matched
@@ -672,18 +680,28 @@ During sending, attachment selection/removal and submission are disabled.
 
 There is no course-management bar, popup, or separate management window in chat.
 Pending attachments appear as compact wrapping pills; long names are ellipsized
-with the full path available on hover. Previously imported canonical paths are
-not parsed again when attached. Their existing indexed version remains in use
-until project close; a future settings entry can expose explicit refresh/removal.
-The underlying knowledge-base import/remove APIs remain available.
+with the full path available on hover. Explicitly reattaching a file refreshes its
+saved version when Send is pressed. Questions without new attachments reuse the
+existing knowledge. The underlying import/remove APIs remain available; removal
+also updates the disk snapshot.
 Encrypted, unreadable, damaged and unsupported documents have distinct import
 errors. Image-only documents can import successfully with zero searchable chunks;
 OCR is not supported. Failed reimports preserve the previous successful index.
 
-The library is shared within one project and is **in memory only**: reimport files
-after restarting/closing the project. Import/remove do not make model requests.
+The library is shared within one project and is **saved in the IDE system cache**,
+under `cst3492-knowledge/<project-location-hash>/snapshot.bin`. It is restored on
+the first background import, removal or question after project restart. No disk
+parsing occurs in the project service constructor or on the EDT. Saved text remains
+available even if the original file changes or disappears; explicitly reattach to
+refresh it. Clearing the IDE system cache can remove this local course snapshot.
+Import/remove do not make model requests, and snapshots contain no credentials or
+chat history.
 Each composer attachment is limited to 50 MiB, preserving main's import policy.
-Total-library memory limits and index persistence are not implemented yet.
+The snapshot is versioned and limited to 64 MiB, 10,000 documents and 500,000 chunks.
+Failed writes preserve the previous index; invalid saved data is reported as a
+retrieval/import error. Total-library heap usage is not separately bounded.
+Snapshots use atomic replacement on supported local file systems. They are a
+single-IDE local cache, not a multi-process shared database.
 
 With main's provider configuration (Tongji, DeepSeek or a compatible custom service), each question now
 retrieves up to five chunks from this library before calling B's answer service.

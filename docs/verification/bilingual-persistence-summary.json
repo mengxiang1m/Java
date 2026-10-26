@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-26T02:27:04.8169367-05:00",
+  "scope": "Targeted course glossary probes on user course PDFs; not general cross-language accuracy",
+  "chineseQuestions": 8,
+  "chineseTop1": 3,
+  "chineseTop5": 8,
+  "labelledQuestions": 29,
+  "overallTop1": 19,
+  "overallTop5": 29,
+  "persistence": {
+    "restoredDocuments": 8,
+    "restoredChunks": 196,
+    "retrievalIdenticalAfterReopen": true
+  },
+  "liveChecks": [
+    {
+      "id": "exceptions",
+      "sources": 2,
+      "sourcesWereRetrieved": true,
+      "citationNumbersValid": true
+    },
+    {
+      "id": "junit-lifecycle",
+      "sources": 1,
+      "sourcesWereRetrieved": true,
+      "citationNumbersValid": true
+    },
+    {
+      "id": "rag",
+      "sources": 1,
+      "sourcesWereRetrieved": true,
+      "citationNumbersValid": true
+    },
+    {
+      "id": "chinese",
+      "sources": 1,
+      "sourcesWereRetrieved": true,
+      "citationNumbersValid": true
+    },
+    {
+      "id": "zh-erasure",
+      "sources": 2,
+      "sourcesWereRetrieved": true,
+      "citationNumbersValid": true
+    },
+    {
+      "id": "zh-junit",
+      "sources": 1,
+      "sourcesWereRetrieved": true,
+      "citationNumbersValid": true
+    },
+    {
+      "id": "zh-rag",
+      "sources": 1,
+      "sourcesWereRetrieved": true,
+      "citationNumbersValid": true
+    },
+    {
+      "id": "code-context",
+      "sources": 3,
+      "sourcesWereRetrieved": true,
+      "citationNumbersValid": true
+    },
+    {
+      "id": "no-match",
+      "sources": 0,
+      "sourcesWereRetrieved": true,
+      "citationNumbersValid": true
+    }
+  ],
+  "regression": {
+    "integration": 163,
+    "failures": 0,
+    "rag": 50,
+    "errors": 0,
+    "skipped": 0,
+    "idea": 230
+  },
+  "review": "One disposal race found and fixed; subsequent review found no further actionable findings",
+  "pluginPackage": {
+    "structureVerification": "PASSED",
+    "filename": "cst3492-ta-0.1.0.zip",
+    "sha256": "20B7F5C0EEBA593C983F7BAE6655010EF7EF890FBF4C32003C7F8824EDE7162D",
+    "bytes": 23370785
+  }
+}
