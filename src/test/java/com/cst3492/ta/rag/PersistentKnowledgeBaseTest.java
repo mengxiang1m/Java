@@ -17,12 +17,15 @@ class PersistentKnowledgeBaseTest {
     @Test void restartRestoresTextAndPhysicalPageWithoutOriginalFile() throws Exception {
         Path store = directory.resolve("cache/state.bin");
         Path pdf = TestDocuments.write(directory.resolve("课件.pdf"), "", "Checked exceptions require catch or throws");
+        // Ingestion canonicalizes Windows short names and directory aliases.
+        // Resolve while the file exists, since this test deletes the original.
+        Path expectedSource = pdf.toRealPath();
         persisted(store).ingest(pdf);
         Files.delete(pdf);
         var restored = persisted(store).retrieve("受检异常", 5);
         assertFalse(restored.isEmpty());
         assertEquals("p.2", restored.getChunks().getFirst().getPageRange());
-        assertEquals(pdf.toAbsolutePath().toString(), restored.getChunks().getFirst().getDocumentName());
+        assertEquals(expectedSource.toString(), restored.getChunks().getFirst().getDocumentName());
     }
 
     @Test void replacementAndRemovalAreDurable() throws Exception {
