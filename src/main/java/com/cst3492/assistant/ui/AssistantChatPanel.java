@@ -68,6 +68,7 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
         this.knowledge = knowledge;
         status.setText(modeDescription);
         status.setForeground(ChatUi.MUTED);
+        status.setFont(ChatUi.font().deriveFont(Math.max(10f, ChatUi.font().getSize() - 1f)));
         setBackground(ChatUi.BACKGROUND);
         setBorder(JBUI.Borders.empty(12));
 
@@ -83,7 +84,7 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
         input.setForeground(ChatUi.TEXT);
         input.setCaretColor(ChatUi.ACCENT);
         input.setFont(ChatUi.font());
-        JBPanel<?> composer = new JBPanel<>(new BorderLayout(0, JBUI.scale(6)));
+        JBPanel<?> composer = new JBPanel<>(new BorderLayout(0, JBUI.scale(3)));
         composer.setOpaque(false);
         composer.setBorder(JBUI.Borders.emptyTop(6));
         unifiedComposer = new ChatComposer(input, send);
@@ -91,6 +92,7 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
             attach.setPreferredSize(JBUI.size(32, 32));
             attach.setMinimumSize(JBUI.size(32, 32));
             attach.setBorder(JBUI.Borders.empty());
+            attach.putClientProperty("assistant.quiet", true);
             attach.setToolTipText("Attach PDF, PPTX or PPT; imported when you send");
             attach.getAccessibleContext().setAccessibleName("Attach course files");
             attach.addActionListener(event -> chooseAttachments());
@@ -361,6 +363,7 @@ public final class AssistantChatPanel extends JBPanel<AssistantChatPanel> implem
 
     private void cancelPendingRequest() {
         requireEdt();
+        conversation.dispose();
         ChatRequestWorker pending = worker;
         worker = null;
         sending = false;

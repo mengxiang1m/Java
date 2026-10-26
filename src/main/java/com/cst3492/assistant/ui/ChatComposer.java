@@ -36,6 +36,11 @@ final class ChatComposer extends JPanel {
         input.setColumns(0);
         input.setOpaque(false);
         input.setBorder(JBUI.Borders.empty(2));
+        input.getEmptyText().setText("Ask anything...");
+        input.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override public void focusGained(java.awt.event.FocusEvent event) { input.getEmptyText().setText(""); }
+            @Override public void focusLost(java.awt.event.FocusEvent event) { input.getEmptyText().setText("Ask anything..."); }
+        });
         inputScroll = new JBScrollPane(input, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER) {
             @Override

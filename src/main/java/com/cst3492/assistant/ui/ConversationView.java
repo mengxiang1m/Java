@@ -47,6 +47,7 @@ final class ConversationView extends JPanel implements Scrollable {
 
     List<MessageCard> messages() { return List.copyOf(messages); }
     boolean isEmptyStateVisible() { return messages.isEmpty(); }
+    void dispose() { messages.forEach(MessageCard::dispose); }
 
     @Override
     public Dimension getPreferredScrollableViewportSize() { return new Dimension(360, 400); }
