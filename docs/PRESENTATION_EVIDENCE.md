@@ -52,3 +52,12 @@ seen during the earlier run is absent from the captured answer.
   automated tests, live-check results and remaining visual checks.
 - The source code and plugin ZIP still need to be included with the team's final
   English report and slide PDFs, according to the assignment's packaging rules.
+
+## Additional real-course validation
+
+On 26 October the operator repeated the exceptions question using actual course
+material and confirmed that the updated plugin displayed course sources. Safe
+logs confirm a successful JSON-mode request with five retrieved/prompt chunks.
+The final real-course answer/source screenshot is pending collection; when it is
+provided, prefer it for the main presentation and retain the Demo captures as
+repeatable fixture-based acceptance evidence.

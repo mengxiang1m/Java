@@ -114,6 +114,15 @@ off; `CST3492_LLM_JSON_MODE` can override the setting. See the provider's
 
 Safe diagnostics record retrieval/validation counts, HTTP status and completion
 reason, without prompts, full responses or API keys. All 120 standalone and 156
-target-IDE tests pass; packaging and structure verification succeed. Live citation
-verification with the updated plugin and actual course PDF is **pending operator
-retest**: the expected Sources include exceptions page 5 or 6.
+target-IDE tests pass; packaging and structure verification succeed.
+
+The operator subsequently confirmed that the updated `c08dadb` sandbox displays
+course Sources for the real-material question. Status: **passed, operator-confirmed**;
+the final real-course screenshot is still pending collection. The source locations
+were checked against the requested exceptions page 5/6 scenario; the new image
+will provide the archived visual evidence.
+
+Safe runtime diagnostics independently show the 26 October request used five
+retrieved chunks, five prompt chunks and JSON mode, and completed with
+`finishReason=stop` (1,623 response characters). No raw response or credential was
+read or added to the repository.
