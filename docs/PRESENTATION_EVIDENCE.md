@@ -1,9 +1,10 @@
 # Demonstration evidence for the English report and slides
 
-These screenshots were captured by the operator on 25 October 2026 in the Linux
-IDEA sandbox, using the Tongji AI platform. Images are unchanged copies of the
-operator's captures. The documents are clearly labelled generated demonstration
-materials, not official course lecture slides. API keys are not shown.
+These screenshots were captured by the operator on 25 and 26 October 2026 in the
+Linux IDEA sandbox, using the Tongji AI platform. Images are unchanged copies of
+the operator's captures. Sections 1–3 use clearly labelled generated demonstration
+materials; the additional validation uses an actual course lecture PDF.
+API keys are not shown.
 
 ## 1. Answers with course sources
 
@@ -44,8 +45,9 @@ seen during the earlier run is absent from the captured answer.
 
 ## Handoff to member D
 
-- Use these three scenarios as the demonstration sequence; the first scenario has
-  separate question and source-list crops.
+- Use the real-course question and source-list crops below for the main course
+  retrieval demonstration. Keep the Demo captures as repeatable test evidence,
+  followed by the general-knowledge and selected-code scenarios.
 - Preserve each image's proportions. Keep the source names/page labels and the
   general-knowledge statement readable when placing images on slides.
 - Cite [the acceptance record](INTEGRATION_ACCEPTANCE.md) for the 156 passing
@@ -58,6 +60,23 @@ seen during the earlier run is absent from the captured answer.
 On 26 October the operator repeated the exceptions question using actual course
 material and confirmed that the updated plugin displayed course sources. Safe
 logs confirm a successful JSON-mode request with five retrieved/prompt chunks.
-The final real-course answer/source screenshot is pending collection; when it is
-provided, prefer it for the main presentation and retain the Demo captures as
-repeatable fixture-based acceptance evidence.
+The two screenshots below have now been collected and visually inspected. The
+first shows the question, answer and references [1]–[3]; the second shows the
+expanded Sources list for `Lec-3.1-Exceptions.pdf`, with physical pages **5, 4 and
+7**, in that order. Text extraction from the original PDF confirms that these
+pages cover exception categories, the Catch or Specify Requirement, and the
+`throws` clause, respectively. The source Details controls are collapsed in the
+capture; the visible evidence establishes document/page references.
+
+**Suggested caption:** The assistant answers a real course question and cites
+the exception categories, handling requirements and throws clause from the
+original lecture PDF (pages 5, 4 and 7).
+
+![Real-course question and answer with numbered references](screenshots/04-real-course-answer.png)
+
+![Real lecture PDF sources at physical pages 5, 4 and 7](screenshots/05-real-course-sources.png)
+
+Use the two crops together in the report. For slides, retain the question, a
+readable answer excerpt, and the document/page labels rather than shrinking the
+entire long answer to fit on one slide. These captures are preferred for the main
+presentation; retain the Demo captures as repeatable fixture-based evidence.

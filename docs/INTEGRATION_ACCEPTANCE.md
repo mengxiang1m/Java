@@ -117,10 +117,16 @@ reason, without prompts, full responses or API keys. All 120 standalone and 156
 target-IDE tests pass; packaging and structure verification succeed.
 
 The operator subsequently confirmed that the updated `c08dadb` sandbox displays
-course Sources for the real-material question. Status: **passed, operator-confirmed**;
-the final real-course screenshot is still pending collection. The source locations
-were checked against the requested exceptions page 5/6 scenario; the new image
-will provide the archived visual evidence.
+course Sources for the real-material question. Status: **passed; operator-confirmed
+and screenshot evidence collected**. The archived
+[answer](screenshots/04-real-course-answer.png) shows the checked/unchecked-exceptions
+question and references [1]–[3]. The accompanying
+[source list](screenshots/05-real-course-sources.png) identifies
+`Lec-3.1-Exceptions.pdf` at physical pages **5, 4 and 7**, respectively. Extracted
+text from the original local PDF confirms the cited exception definitions,
+Catch or Specify Requirement, and `throws` clause. These are the sources selected
+for the displayed answer; the earlier offline ranking's first two hits (pages
+5 and 6) are a separate retrieval result. Native layout/theme checks remain pending.
 
 Safe runtime diagnostics independently show the 26 October request used five
 retrieved chunks, five prompt chunks and JSON mode, and completed with
