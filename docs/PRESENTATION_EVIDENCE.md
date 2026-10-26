@@ -48,7 +48,7 @@ seen during the earlier run is absent from the captured answer.
   separate question and source-list crops.
 - Preserve each image's proportions. Keep the source names/page labels and the
   general-knowledge statement readable when placing images on slides.
-- Cite [the acceptance record](INTEGRATION_ACCEPTANCE.md) for the 148 passing
+- Cite [the acceptance record](INTEGRATION_ACCEPTANCE.md) for the 156 passing
   automated tests, live-check results and remaining visual checks.
 - The source code and plugin ZIP still need to be included with the team's final
   English report and slide PDFs, according to the assignment's packaging rules.

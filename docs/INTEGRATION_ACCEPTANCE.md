@@ -15,8 +15,8 @@ disposed Tool Windows suppress late callbacks. Restarting requires reimport.
 
 ## Automated evidence
 
-- Standalone A/B/chat/import/HTTP suite: **112 passed, 0 failures/errors/skipped**.
-- Full target IDEA 2026.2.3 (262.10968.63) suite: **148 passed, 0 failures/errors/skipped**, including 39 UI/worker cases. The 112 standalone cases are a subset of the full suite.
+- Standalone A/B/chat/import/HTTP suite: **120 passed, 0 failures/errors/skipped**.
+- Full target IDEA 2026.2.3 (262.10968.63) suite: **156 passed, 0 failures/errors/skipped**, including 39 UI/worker cases. The 120 standalone cases are a subset of the full suite.
 - HTTP integration uses a localhost server and the real HTTP client, prompt
   renderer, parser and citation adapter. PDF, PPTX and legacy PPT are exercised.
 - Successive questions, later imports/removals, exact selected code, fabricated
@@ -43,6 +43,7 @@ Demo files: `integration-standalone/build/acceptance-materials/`.
 | `CST3492_LLM_API_KEY` | Secret for the selected provider, supplied in process environment |
 | `CST3492_LLM_BASE_URL` | Compatible API base URL, without `/chat/completions` |
 | `CST3492_LLM_MODEL` | Model ID available to the account |
+| `CST3492_LLM_JSON_MODE` | Optional override; false disables JSON mode for an incompatible endpoint |
 | `DEEPSEEK_API_KEY` | Legacy fallback, used only with DeepSeek |
 | `CST3492_CHAT_MODE=mock` | Explicit local mock mode |
 
@@ -89,3 +90,30 @@ final screenshot. Its visible answer no longer contains the earlier unsupported
 reference. The archived images are unchanged copies of the operator's captures.
 The source-list and general-answer crops do not show every part of the original
 conversation; the operator's confirmations provide the remaining context.
+
+## Real course follow-up, 26 October 2026
+
+The operator reported an exceptions answer that described the course definitions
+but ended with the general-knowledge disclaimer. Raw model payloads were not
+captured, so the exact rejected response shape cannot be established retrospectively.
+The old integration only requested JSON in the prompt; invalid JSON or unverified
+document/page metadata caused a general fallback.
+
+An offline reproduction with all nine supplied PDFs imported 199 physical pages
+and 201 chunks. The checked/unchecked-exceptions question returned five hits;
+`Lec-3.1-Exceptions.pdf` pages 5 and 6 ranked first and second. This verifies local
+retrieval, without a live model call, but cannot establish the earlier GUI session's
+knowledge-base contents.
+
+The fix requests `response_format: {"type":"json_object"}` for Tongji/DeepSeek.
+The model returns `citations: [{"sourceId":1}]`; the parser derives actual paths
+and pages from the supplied chunks, deduplicates sources and renumbers references.
+Legacy metadata citations remain supported. Custom endpoints default to JSON mode
+off; `CST3492_LLM_JSON_MODE` can override the setting. See the provider's
+[JSON output guidance](https://api-docs.deepseek.com/guides/json_mode).
+
+Safe diagnostics record retrieval/validation counts, HTTP status and completion
+reason, without prompts, full responses or API keys. All 120 standalone and 156
+target-IDE tests pass; packaging and structure verification succeed. Live citation
+verification with the updated plugin and actual course PDF is **pending operator
+retest**: the expected Sources include exceptions page 5 or 6.
