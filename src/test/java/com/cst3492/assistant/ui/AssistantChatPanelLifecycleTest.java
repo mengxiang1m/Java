@@ -106,6 +106,85 @@ class AssistantChatPanelLifecycleTest {
         return result;
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"pdf", "pptx", "ppt"})
+    void attachmentToHttpToRenderedAnswerUsesTheSameProjectKnowledge(String format) throws Exception {
+        var path = attachmentDirectory.resolve("http-course." + format);
+        if (format.equals("pdf")) {
+            path = pdf("http-course.pdf");
+        } else if (format.equals("pptx")) {
+            try (var slides = new org.apache.poi.xslf.usermodel.XMLSlideShow();
+                 var output = java.nio.file.Files.newOutputStream(path)) {
+                slides.createSlide().createTextBox().setText("Question JDBC original course evidence");
+                slides.write(output);
+            }
+        } else {
+            try (var slides = new org.apache.poi.hslf.usermodel.HSLFSlideShow();
+                 var output = java.nio.file.Files.newOutputStream(path)) {
+                slides.createSlide().createTextBox().setText("Question JDBC original course evidence");
+                slides.write(output);
+            }
+        }
+        var submittedFile = path;
+        var captured = new AtomicReference<String>();
+        var server = com.sun.net.httpserver.HttpServer.create(new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/v1/chat/completions", exchange -> {
+            captured.set(new String(exchange.getRequestBody().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
+            String answer = "{\"answer\":\"Use the course JDBC guidance [1].\","
+                    + "\"citations\":[{\"sourceId\":1}],\"basedOnCourseMaterial\":true}";
+            byte[] body = new com.google.gson.Gson().toJson(java.util.Map.of("choices", java.util.List.of(
+                    java.util.Map.of("message", java.util.Map.of("content", answer), "finish_reason", "stop"))))
+                    .getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, body.length);
+            try (var output = exchange.getResponseBody()) { output.write(body); }
+            exchange.close();
+        });
+        server.start();
+        try (var knowledge = new com.cst3492.assistant.knowledge.ProjectKnowledgeBase()) {
+            var selection = com.cst3492.assistant.chat.ChatServiceFactory.create(java.util.Map.of(
+                    "CST3492_LLM_PROVIDER", "custom", "CST3492_LLM_API_KEY", "offline-placeholder",
+                    "CST3492_LLM_MODEL", "local-fixture", "CST3492_LLM_BASE_URL",
+                    "http://127.0.0.1:" + server.getAddress().getPort() + "/v1"), q -> knowledge.retrieve(q, 5));
+            Fixture fixture = create(selection.service(), knowledge);
+            try {
+                String code = "\tconnection.rollback();\r\n";
+                SwingUtilities.invokeAndWait(() -> {
+                    fixture.panel.setEditorContext(code);
+                    fixture.panel.setAttachments(java.util.List.of(submittedFile));
+                });
+                var done = new CountDownLatch(1);
+                start(fixture, done);
+                assertTrue(done.await(10, TimeUnit.SECONDS));
+                var user = com.google.gson.JsonParser.parseString(captured.get()).getAsJsonObject()
+                        .getAsJsonArray("messages").get(1).getAsJsonObject().get("content").getAsString();
+                assertTrue(user.contains("JDBC original course evidence"));
+                assertTrue(user.contains(code));
+                assertTrue(user.contains(submittedFile.toRealPath().toString()));
+                SwingUtilities.invokeAndWait(() -> {
+                    assertIdle(fixture);
+                    var card = field(fixture.panel, "conversation", ConversationView.class).messages().stream()
+                            .filter(item -> item.reply() != null).findFirst().orElseThrow();
+                    assertEquals("Use the course JDBC guidance [1].", card.reply().text());
+                    assertEquals(com.cst3492.assistant.chat.ChatReply.Status.NORMAL, card.reply().status());
+                    assertEquals(1, card.reply().sources().size());
+                    var source = card.reply().sources().getFirst();
+                    assertEquals(1, source.number());
+                    assertEquals(format.equals("pdf") ? com.cst3492.assistant.chat.CourseSource.Type.PDF_PAGE
+                            : com.cst3492.assistant.chat.CourseSource.Type.PPT_SLIDE, source.type());
+                    assertFalse(source.testData());
+                    assertFalse(source.excerpts().isEmpty());
+                    card.sources().setExpanded(true);
+                    assertEquals(1, card.sources().cards().size());
+                });
+            } finally {
+                SwingUtilities.invokeAndWait(fixture.panel::dispose);
+            }
+        } finally {
+            server.stop(0);
+        }
+    }
+
     @Test void selectedThenRemovedAttachmentIsNeverImported() throws Exception {
         try (var knowledge = new com.cst3492.assistant.knowledge.ProjectKnowledgeBase()) {
             Fixture fixture = create(new MockChatService(), knowledge);

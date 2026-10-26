@@ -15,8 +15,8 @@ public final class RetrievalResult {
     private final List<RetrievedChunk> chunks; // top-k relevant chunks, may be empty
 
     public RetrievalResult(List<RetrievedChunk> chunks) {
-        this.chunks = Collections.unmodifiableList(
-                chunks == null ? Collections.emptyList() : chunks);
+        // Own the snapshot: callers must not change what prompting/citation validation sees.
+        this.chunks = chunks == null ? List.of() : List.copyOf(chunks);
     }
 
     public List<RetrievedChunk> getChunks() {

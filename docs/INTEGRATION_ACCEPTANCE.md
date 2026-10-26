@@ -1,5 +1,10 @@
 # A/B/C integration acceptance
 
+Latest Windows integration repair and independently rerun results are recorded in
+[Member D verification](MEMBER_D_VERIFICATION.md). Historical counts and live
+operator reports below retain their original scope; use the new record for the
+current 213-case target-IDE suite.
+
 ## Implemented flow
 
 The Tool Window owns one in-memory knowledge base shared by document import and

@@ -94,9 +94,19 @@ class RagHttpIntegrationTest {
         }
     }
 
-    @Test
-    void httpFailureReachesTheExistingUiErrorBoundary() throws Exception {
-        try (var endpoint = endpoint(503, "Unavailable")) {
+    @ParameterizedTest
+    @ValueSource(ints = {401, 403, 429, 500, 503})
+    void httpFailureReachesTheExistingUiErrorBoundary(int status) throws Exception {
+        try (var endpoint = endpoint(status, "Unavailable")) {
+            var service = ChatServiceFactory.create(environment(endpoint, "tongji"), new KnowledgeBaseService()).service();
+            assertThrows(LlmException.class, () -> service.reply("JDBC"));
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "\n\t"})
+    void emptyHttpCompletionIsAnErrorRatherThanAGeneralKnowledgeSuccess(String content) throws Exception {
+        try (var endpoint = endpoint(200, content)) {
             var service = ChatServiceFactory.create(environment(endpoint, "tongji"), new KnowledgeBaseService()).service();
             assertThrows(LlmException.class, () -> service.reply("JDBC"));
         }

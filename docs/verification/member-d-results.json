@@ -1,0 +1,226 @@
+{
+  "date": "2026-10-25",
+  "baseline": "437d37658d791dce31945b1550ccd8746974b6bf",
+  "ide": "IntelliJ IDEA 2026.2.3 (262.10968.63)",
+  "jdk": "JetBrains Runtime javac 25.0.4",
+  "gradle": "9.6.0",
+  "testSuites": {
+    "rag": {
+      "tests": 39,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "integration": {
+      "tests": 147,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "idea": {
+      "tests": 213,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "countsOverlap": true,
+  "liveProviderTested": false,
+  "retrievalFixtures": [
+    {
+      "scope": "Generated five-page fixture; exact/lexical questions, not real-course accuracy",
+      "format": "pdf",
+      "pages": 5,
+      "chunks": 4,
+      "importMs": 14.21,
+      "top1Correct": 8,
+      "questions": [
+        {
+          "retrievalMs": 0.128,
+          "actualTop1": "p.2",
+          "expected": "p.2",
+          "question": "PreparedStatement parameters"
+        },
+        {
+          "retrievalMs": 0.1147,
+          "actualTop1": "p.2",
+          "expected": "p.2",
+          "question": "SQL injection"
+        },
+        {
+          "retrievalMs": 0.0765,
+          "actualTop1": "p.3",
+          "expected": "p.3",
+          "question": "Servlet lifecycle"
+        },
+        {
+          "retrievalMs": 0.0698,
+          "actualTop1": "p.3",
+          "expected": "p.3",
+          "question": "destroy service"
+        },
+        {
+          "retrievalMs": 0.1016,
+          "actualTop1": "p.4",
+          "expected": "p.4",
+          "question": "checked exceptions throws"
+        },
+        {
+          "retrievalMs": 0.0882,
+          "actualTop1": "p.4",
+          "expected": "p.4",
+          "question": "caught declared"
+        },
+        {
+          "retrievalMs": 0.1231,
+          "actualTop1": "p.5",
+          "expected": "p.5",
+          "question": "dependency injection constructors"
+        },
+        {
+          "retrievalMs": 0.1018,
+          "actualTop1": "p.5",
+          "expected": "p.5",
+          "question": "collaborators constructors"
+        }
+      ],
+      "unmatchedQueryHits": 0,
+      "crossLanguageProbe": {
+        "hits": 0,
+        "question": "\u4f9d\u8d56\u6ce8\u5165"
+      }
+    },
+    {
+      "scope": "Generated five-page fixture; exact/lexical questions, not real-course accuracy",
+      "format": "ppt",
+      "pages": 5,
+      "chunks": 4,
+      "importMs": 11.8042,
+      "top1Correct": 8,
+      "questions": [
+        {
+          "retrievalMs": 0.1412,
+          "actualTop1": "slide 2",
+          "expected": "slide 2",
+          "question": "PreparedStatement parameters"
+        },
+        {
+          "retrievalMs": 0.1539,
+          "actualTop1": "slide 2",
+          "expected": "slide 2",
+          "question": "SQL injection"
+        },
+        {
+          "retrievalMs": 0.0592,
+          "actualTop1": "slide 3",
+          "expected": "slide 3",
+          "question": "Servlet lifecycle"
+        },
+        {
+          "retrievalMs": 0.091,
+          "actualTop1": "slide 3",
+          "expected": "slide 3",
+          "question": "destroy service"
+        },
+        {
+          "retrievalMs": 0.0915,
+          "actualTop1": "slide 4",
+          "expected": "slide 4",
+          "question": "checked exceptions throws"
+        },
+        {
+          "retrievalMs": 0.0584,
+          "actualTop1": "slide 4",
+          "expected": "slide 4",
+          "question": "caught declared"
+        },
+        {
+          "retrievalMs": 0.0725,
+          "actualTop1": "slide 5",
+          "expected": "slide 5",
+          "question": "dependency injection constructors"
+        },
+        {
+          "retrievalMs": 0.0931,
+          "actualTop1": "slide 5",
+          "expected": "slide 5",
+          "question": "collaborators constructors"
+        }
+      ],
+      "unmatchedQueryHits": 0,
+      "crossLanguageProbe": {
+        "hits": 0,
+        "question": "\u4f9d\u8d56\u6ce8\u5165"
+      }
+    },
+    {
+      "scope": "Generated five-page fixture; exact/lexical questions, not real-course accuracy",
+      "format": "pptx",
+      "pages": 5,
+      "chunks": 4,
+      "importMs": 29.8566,
+      "top1Correct": 8,
+      "questions": [
+        {
+          "retrievalMs": 0.1848,
+          "actualTop1": "slide 2",
+          "expected": "slide 2",
+          "question": "PreparedStatement parameters"
+        },
+        {
+          "retrievalMs": 0.1469,
+          "actualTop1": "slide 2",
+          "expected": "slide 2",
+          "question": "SQL injection"
+        },
+        {
+          "retrievalMs": 0.0909,
+          "actualTop1": "slide 3",
+          "expected": "slide 3",
+          "question": "Servlet lifecycle"
+        },
+        {
+          "retrievalMs": 0.072,
+          "actualTop1": "slide 3",
+          "expected": "slide 3",
+          "question": "destroy service"
+        },
+        {
+          "retrievalMs": 0.1114,
+          "actualTop1": "slide 4",
+          "expected": "slide 4",
+          "question": "checked exceptions throws"
+        },
+        {
+          "retrievalMs": 0.0989,
+          "actualTop1": "slide 4",
+          "expected": "slide 4",
+          "question": "caught declared"
+        },
+        {
+          "retrievalMs": 0.0971,
+          "actualTop1": "slide 5",
+          "expected": "slide 5",
+          "question": "dependency injection constructors"
+        },
+        {
+          "retrievalMs": 0.0625,
+          "actualTop1": "slide 5",
+          "expected": "slide 5",
+          "question": "collaborators constructors"
+        }
+      ],
+      "unmatchedQueryHits": 0,
+      "crossLanguageProbe": {
+        "hits": 0,
+        "question": "\u4f9d\u8d56\u6ce8\u5165"
+      }
+    }
+  ],
+  "pluginZip": {
+    "name": "cst3492-ta-0.1.0.zip",
+    "bytes": 23360188,
+    "sha256": "efb23a733e2925f0881fe3e00bbbd68b90230ffb0718f0f48e4192a0e16d04ff"
+  },
+  "binaryVerifier": "Not completed: dependency-resolution connection timeout"
+}

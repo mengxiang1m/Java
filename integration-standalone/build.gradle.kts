@@ -15,12 +15,13 @@ sourceSets {
         java.setSrcDirs(listOf("../src/main/java"))
         java.include("com/cst3492/ta/core/**", "com/cst3492/ta/rag/**",
             "com/cst3492/ta/llm/**", "com/cst3492/assistant/chat/**",
+            "com/cst3492/assistant/knowledge/ProjectKnowledgeBase.java",
             "com/cst3492/assistant/ui/ChatReplyPresentation.java",
             "com/cst3492/assistant/ui/DocumentImportWorker.java")
     }
     test {
         java.setSrcDirs(listOf("../src/test/java"))
-        java.include("com/cst3492/ta/rag/**", "com/cst3492/ta/llm/**",
+        java.include("com/cst3492/ta/core/**", "com/cst3492/ta/rag/**", "com/cst3492/ta/llm/**",
             "com/cst3492/assistant/chat/**", "com/cst3492/integration/**",
             "com/cst3492/assistant/ui/DocumentImportWorkerTest.java")
     }

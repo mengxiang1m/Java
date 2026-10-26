@@ -1,5 +1,22 @@
 # CST3492 Assistant
 
+## Member D reproducible verification (Windows)
+
+Run the actual shared RAG sources and cross-module integration tests without an
+IDE SDK, or add `-IncludeIde` to compile/test/package the complete plugin:
+
+```powershell
+.\scripts\verify.ps1 -JdkPath 'C:\path\to\jdk-25'
+.\scripts\verify.ps1 -JdkPath 'C:\path\to\jdk-25' -IncludeIde -IdePath 'C:\path\to\IntelliJ IDEA 2026.2'
+```
+
+The script temporarily sets `JAVA_HOME` in its own process and restores it on
+completion. The Gradle Wrapper is the default; `-GradleHome` can select a local
+Gradle 9.6.0 installation. Reports are generated under each build's
+`build/reports/tests/test/`. The deterministic integration suite uses localhost
+HTTP responses, not a live model. Current findings and evidence are recorded in
+[`docs/MEMBER_D_VERIFICATION.md`](docs/MEMBER_D_VERIFICATION.md).
+
 ## Module A: document ingestion and keyword retrieval
 
 `com.cst3492.ta.rag.KnowledgeBaseService` is a standalone, in-memory service.

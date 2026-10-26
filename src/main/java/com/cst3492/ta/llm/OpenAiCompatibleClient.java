@@ -149,6 +149,9 @@ public final class OpenAiCompatibleClient implements LlmClient {
                 throw new LlmException("LLM response has no message content: " + truncate(responseBody));
             }
             String content = message.get("content").getAsString();
+            if (content.isBlank()) {
+                throw new LlmException("LLM response contains no answer text.");
+            }
             var reason = choices.get(0).getAsJsonObject().get("finish_reason");
             LOG.log(System.Logger.Level.INFO, "LLM completion: finishReason={0}, contentCharacters={1}",
                     reason == null || reason.isJsonNull() ? "not reported" : reason.getAsString(), content.length());

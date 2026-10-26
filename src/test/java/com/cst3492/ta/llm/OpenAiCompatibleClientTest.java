@@ -73,6 +73,21 @@ class OpenAiCompatibleClientTest {
                 () -> OpenAiCompatibleClient.extractContent("{\"choices\":[]}"));
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"", " ", "\n\t"})
+    void rejectsEmptyProviderContentInsteadOfReportingASuccessfulAnswer(String content) {
+        JsonObject message = new JsonObject();
+        message.addProperty("content", content);
+        JsonObject choice = new JsonObject();
+        choice.add("message", message);
+        JsonArray choices = new JsonArray();
+        choices.add(choice);
+        JsonObject response = new JsonObject();
+        response.add("choices", choices);
+
+        assertThrows(LlmException.class, () -> OpenAiCompatibleClient.extractContent(response.toString()));
+    }
+
     @Test
     void throwsWhenApiKeyIsBlank() {
         LlmConfig config = LlmConfig.deepseek("   ");

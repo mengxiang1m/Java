@@ -25,7 +25,9 @@ sourceSets {
     }
     test {
         java.setSrcDirs(listOf("../src/test/java"))
-        java.include("com/cst3492/ta/rag/**")
+        java.include("com/cst3492/ta/core/**", "com/cst3492/ta/rag/**")
+        // This suite verifies A alone; the project/chat pipeline belongs to integration-standalone.
+        java.exclude("com/cst3492/ta/rag/ProjectKnowledgeBaseIntegrationTest.java")
     }
 }
 
