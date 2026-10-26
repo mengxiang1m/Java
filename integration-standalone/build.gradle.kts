@@ -44,3 +44,15 @@ tasks.register<JavaExec>("prepareAcceptanceMaterials") {
     mainClass.set("com.cst3492.integration.CourseFixtures")
     args(layout.buildDirectory.dir("acceptance-materials").get().asFile.absolutePath)
 }
+
+tasks.register<JavaExec>("courseAcceptance") {
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("com.cst3492.integration.RealCourseAcceptance")
+    // Match Windows' configured web route for this opt-in acceptance process.
+    systemProperty("java.net.useSystemProxies", "true")
+    val liveCourse = providers.gradleProperty("liveCourse").getOrElse("false")
+    val reportName = if (liveCourse.toBoolean()) "live.json" else "retrieval.json"
+    args(providers.gradleProperty("courseDirectory").getOrElse(".."), liveCourse,
+        layout.buildDirectory.file("reports/real-course/$reportName").get().asFile.absolutePath)
+}

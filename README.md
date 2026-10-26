@@ -1,5 +1,14 @@
 # CST3492 Assistant
 
+## Configured Tongji and uploaded-course acceptance
+
+On the configured Windows workstation, use `scripts/run-tongji.ps1` to load the
+protected local model profile. `-Mode Retrieve` tests the supplied lecture PDFs;
+`-Mode Live` calls the real provider; `-Mode RunIde` launches the configured IDE.
+No API key is stored in Git. See
+[the real-course acceptance record](docs/TONGJI_REAL_COURSE_ACCEPTANCE.md) for
+measured retrieval results and the current network block on live model calls.
+
 ## Member D reproducible verification (Windows)
 
 Run the actual shared RAG sources and cross-module integration tests without an

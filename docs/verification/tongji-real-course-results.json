@@ -1,0 +1,1008 @@
+{
+  "date": "2026-10-26",
+  "provider": "tongji",
+  "baseUrl": "https://agi.tongji.edu.cn/v1",
+  "model": "DeepSeek-V4.1-Flash",
+  "credentialStorage": "Windows current-user DPAPI outside checkout; no key included",
+  "localRetrieval": {
+    "scope": "User-supplied real course PDFs; reference pages labelled by inspection; live answers require human review",
+    "documents": [
+      {
+        "document": "Lec-1-Java-Fundamentals.pdf",
+        "pages": 34,
+        "chunks": 34,
+        "milliseconds": 431.0118
+      },
+      {
+        "document": "Lec-2-OOP-with-Java.pdf",
+        "pages": 32,
+        "chunks": 32,
+        "milliseconds": 87.0225
+      },
+      {
+        "document": "Lec-3.1-Exceptions.pdf",
+        "pages": 11,
+        "chunks": 11,
+        "milliseconds": 33.7316
+      },
+      {
+        "document": "Lec-3.2-Generics-and-Collections.pdf",
+        "pages": 17,
+        "chunks": 17,
+        "milliseconds": 33.2286
+      },
+      {
+        "document": "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf",
+        "pages": 16,
+        "chunks": 16,
+        "milliseconds": 37.5174
+      },
+      {
+        "document": "Lec-3.4-JUnit.pdf",
+        "pages": 7,
+        "chunks": 7,
+        "milliseconds": 17.6712
+      },
+      {
+        "document": "Lec-4-AI-Assisted-Java-Development.pdf",
+        "pages": 34,
+        "chunks": 34,
+        "milliseconds": 68.4325
+      },
+      {
+        "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+        "pages": 44,
+        "chunks": 45,
+        "milliseconds": 101.6801
+      }
+    ],
+    "retrieval": [
+      {
+        "id": "primitives",
+        "question": "What are the eight primitive data types in Java?",
+        "expectedDocument": "Lec-1-Java-Fundamentals.pdf",
+        "expectedPages": [
+          "p.10"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 8.0023,
+        "hits": [
+          {
+            "document": "Lec-1-Java-Fundamentals.pdf",
+            "location": "p.10",
+            "score": 13.04095698510423,
+            "excerpt": "Primitive Data Types\n\u2022 Java is statically-typed: variables first declared, then used\n\u2022 8 primitive data types\n\u2013 byte, short, int, long\n\u2013 float, double\n\u2013 boolean\n\u2013 char\n\u2022 Special support for character strings\n\u2013 String, immutable\n10"
+          },
+          {
+            "document": "Lec-2-OOP-with-Java.pdf",
+            "location": "p.17",
+            "score": 6.816779134744564,
+            "excerpt": "Enum Types\n\u2022 An enum type: a special data type that enables for a variable \nto be a set of predefined constants\n\u2022 Java enum types are much more powerful than their \ncounterparts in other languages\n\u2013 All enums implicitly extend java.lang.Enum\n\u2013 The enum class body can include methods and other fields\n\u2013 The constructor for an enum type must be package-private or \nprivate access\n\u2013 Demo\n17"
+          },
+          {
+            "document": "Lec-2-OOP-with-Java.pdf",
+            "location": "p.5",
+            "score": 6.764140300969201,
+            "excerpt": "Passing Information to a Method\n\u2022 Passing by value, at any time\n\u2013 Passing primitive data type arguments\n\u2013 Passing reference data type arguments\n\u2022 Arbitrary number of arguments\n\u2013 You can use a construct called varargs to pass an arbitrary number \nof values to a method\n\u2022 Parameter names\n\u2013 A parameter can have the same name as one of the class\u2019 fields: to \nshadow the field\n5"
+          },
+          {
+            "document": "Lec-1-Java-Fundamentals.pdf",
+            "location": "p.19",
+            "score": 6.6819150584415805,
+            "excerpt": "Control Flow Statements\n\u2022 The if-then Statement\n\u2022 The if-then-else Statement\n\u2022 The switch Statement\n\u2013Working with byte, short, char, int, enumerated types, String, and a \nfew special classes that wrap certain primitive types\n\u2022 The while and do-while Statements\n\u2022 The for Statement\n\u2022 Branching Statements: break, continue, return\n19"
+          },
+          {
+            "document": "Lec-1-Java-Fundamentals.pdf",
+            "location": "p.32",
+            "score": 6.119388325585486,
+            "excerpt": "Converting between Numbers & Strings\n\u2022 Converting Strings to Numbers\n\u2013 A method valueOf converts a string to an object\n\u2013 Each of the Number subclasses that wrap primitive numeric types \nalso provides a parseXXX() method\n\u2022 Converting Numbers to Strings\n\u2013 String.valueOf()\n\u2013 toString()\n32"
+          }
+        ]
+      },
+      {
+        "id": "autoboxing",
+        "question": "When does autoboxing and unboxing happen?",
+        "expectedDocument": "Lec-1-Java-Fundamentals.pdf",
+        "expectedPages": [
+          "p.26"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 0.2854,
+        "hits": [
+          {
+            "document": "Lec-1-Java-Fundamentals.pdf",
+            "location": "p.26",
+            "score": 14.489989348672278,
+            "excerpt": "Autoboxing and Unboxing\n\u2022 Wrapping can be done by the compiler\nCharacter ch = 'a';\n\u2022 Autoboxing\n\u2013 Passed as a parameter to a method that expects an object of the \ncorresponding wrapper class\n\u2013 Assigned to a variable of the corresponding wrapper class\n\u2022 Unboxing\n\u2013 Passed as a parameter to a method that expects a value of the \ncorresponding primitive type\n\u2013 Assigned to a variable of the corresponding primitive type\n26"
+          }
+        ]
+      },
+      {
+        "id": "inheritance",
+        "question": "Does a Java subclass inherit constructors?",
+        "expectedDocument": "Lec-2-OOP-with-Java.pdf",
+        "expectedPages": [
+          "p.19"
+        ],
+        "top1Correct": false,
+        "top5Correct": true,
+        "milliseconds": 0.4808,
+        "hits": [
+          {
+            "document": "Lec-2-OOP-with-Java.pdf",
+            "location": "p.23",
+            "score": 9.64672269166092,
+            "excerpt": "Using the Keyword \u201csuper\u201d\n\u2022 Accessing superclass members\n\u2013 Invoke the overridden method\n\u2013 Refer to a hidden field\n\u2022 Subclass constructors\n\u2013 Invocation of a superclass constructor must be the first line in the \nsubclass constructor\n\u2013 Constructor chaining\n23"
+          },
+          {
+            "document": "Lec-2-OOP-with-Java.pdf",
+            "location": "p.19",
+            "score": 8.155341162099678,
+            "excerpt": "Inheritance\n\u2022 Classes can be derived from other classes, inheriting fields and \nmethods\n\u2022 Definitions\n\u2013 Subclass (derived class/extended class/child class)\n\u2013 Superclass (base class/parent class)\n\u2022 Every class has one and only one direct superclass (single \ninheritance)\n\u2013 Excepting Object, which has no superclass\n\u2022 A subclass inherits all the members (fields, methods, and nested \nclasses) from its superclass\n\u2013 Constructors are not members\n19"
+          },
+          {
+            "document": "Lec-2-OOP-with-Java.pdf",
+            "location": "p.20",
+            "score": 6.2293438367509255,
+            "excerpt": "What You Can Do in a Subclass\n\u2022 Use the inherited members as is, replace them, hide them, or \nsupplement them\n\u2013 Declare a field in the subclass with the same name as the one in the \nsuperclass, thus hiding it (NOT recommended)\n\u2013 Write a new instance method in the subclass that has the same \nsignature as the one in the superclass, thus overriding it\n\u2013 Write a new static method in the subclass that has the same \nsignature as the one in the superclass, thus hiding it\n\u2013 Write a subclass constructor "
+          },
+          {
+            "document": "Lec-1-Java-Fundamentals.pdf",
+            "location": "p.15",
+            "score": 4.082532670253278,
+            "excerpt": "Equality, Relational, and Conditional\n\u2022 Equality and Relational Operators: ==, !=, >, >=, <, <=\n\u2022 Conditional Operators: &&, ||\n\u2013 Short-circuiting: the second operand is evaluated only if needed\n\u2022 Ternary operator: a ? b : c\n\u2022 Type Comparison Operator: instanceof\n\u2013 Test if an object is an instance of a class, an instance of a subclass, \nor an instance of a class that implements a particular interface\n15"
+          },
+          {
+            "document": "Lec-1-Java-Fundamentals.pdf",
+            "location": "p.31",
+            "score": 3.9454583509511116,
+            "excerpt": "Strings\n\u2022 The String class has 13 constructors that allow you to \nprovide the initial value\n\u2022 The String class is immutable\n\u2013 Once created, a String object cannot be changed\n\u2022 length()\n\u2022 concat()\n\u2022 format()\n31"
+          }
+        ]
+      },
+      {
+        "id": "exceptions",
+        "question": "What is the difference between checked and unchecked exceptions?",
+        "expectedDocument": "Lec-3.1-Exceptions.pdf",
+        "expectedPages": [
+          "p.5"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 0.299,
+        "hits": [
+          {
+            "document": "Lec-3.1-Exceptions.pdf",
+            "location": "p.5",
+            "score": 10.396898912264959,
+            "excerpt": "Three Categories of Exceptions\n\u2022 Checked exception: exceptional conditions that a well-written \napplication should anticipate and recover from\n\u2013 Example: java.io.FileNotFoundException\n\u2013 Subject to the Catch or Specify Requirement\n\u2022 Error: exceptional conditions that are external to the application, \nand that the application usually cannot anticipate or recover from\n\u2013 Example: java.io.IOError\n\u2022 Runtime exception: exceptional conditions that are internal to \nthe application, and that the applicati"
+          },
+          {
+            "document": "Lec-3.1-Exceptions.pdf",
+            "location": "p.6",
+            "score": 9.71050889437426,
+            "excerpt": "Catching and Handling Exceptions\n\u2022 An example: writing a list of numbers into a text file\n\u2013 A checked exception and an unchecked exception\n\u2022 The try block\n\u2022 The catch blocks\n\u2013 The argument type must be the name of a class that inherits from the \nThrowable class\n\u2013 The runtime system invokes the exception handler when the handler is \nthe first one in the call stack whose ExceptionType matches the type of \nthe exception thrown\n\u2013 A single catch block can handle more than one type of exception\n\u2022 The "
+          },
+          {
+            "document": "Lec-1-Java-Fundamentals.pdf",
+            "location": "p.22",
+            "score": 5.71585411372209,
+            "excerpt": "Array Manipulations\n\u2022 Methods for performing array manipulations by the \njava.util.Arrays class\n\u2013 arraycopy, copyOfRange\n\u2013 equals\n\u2013 binarySearch\n\u2013 fill\n\u2013 sort, parallelSort (demonstration of performance difference)\n\u2013 Many more (for your private study)\n22"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.2",
+            "score": 4.959288794706961,
+            "excerpt": "Development AI and Runtime AI\nLast Week: Development AI This Week: Runtime AI\n\u2022 AI helped us develop GradeBook \u2022 GradeBook calls a model while it runs\n\u2022 AI runs while we write the code \u2022 AI runs while the teacher uses it\n\u2022 Output: spec, code, tests \u2022 Output: a feedback draft\n\u2022 Checked by: tests and review \u2022 Checked by: Java code and the teacher\nSame discipline: the model drafts; Java and the teacher decide.\nOverview 2"
+          },
+          {
+            "document": "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf",
+            "location": "p.6",
+            "score": 4.295545190713547,
+            "excerpt": "Syntax\n\u2022 @Entity\n@Override\nvoid mySuperMethod() { ... }\n\u2022 Can include elements, named or unnamed, with values\n@SuppressWarnings(value = \"unchecked\")\nvoid myMethod() { ... }\n\u2022 Can be applied to declarations of classes, fields, methods, and \nother program elements\n\u2022 Each annotation often appears on its own line by convention\n\u2022 Multiple and repeating annotations on the same declaration are \nsupported\n6"
+          }
+        ]
+      },
+      {
+        "id": "throws",
+        "question": "What is the purpose of the throws clause?",
+        "expectedDocument": "Lec-3.1-Exceptions.pdf",
+        "expectedPages": [
+          "p.7"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 0.1827,
+        "hits": [
+          {
+            "document": "Lec-3.1-Exceptions.pdf",
+            "location": "p.7",
+            "score": 9.793479575519838,
+            "excerpt": "Specifying Exceptions Thrown by Methods\n\u2022 In some cases, it is better to let a method further up the call \nstack handle the exception\n\u2022 The throws clause comprises the throws keyword followed by \na comma-separated list of all the exceptions thrown by that \nmethod\n\u2022 Example\n7"
+          },
+          {
+            "document": "Lec-3.1-Exceptions.pdf",
+            "location": "p.4",
+            "score": 8.254181160918723,
+            "excerpt": "The Catch or Specify Requirement\n\u2022 Code that might throw certain exceptions must be enclosed by \neither of the following\n\u2013 A try statement that catches the exception\n\u2022 Providing a handler for the exception\n\u2013 A method that specifies that it can throw the exception\n\u2022 Providing a throws clause that lists the exception\n\u2022 Not all exceptions are subject to the Catch or Specify \nRequirement\n4"
+          },
+          {
+            "document": "Lec-2-OOP-with-Java.pdf",
+            "location": "p.24",
+            "score": 5.2131021155459845,
+            "excerpt": "Object as a Superclass\n\u2022 protected Object clone() throws \nCloneNotSupportedException\n\u2022 public boolean equals(Object obj)\n\u2022 protected void finalize() throws Throwable\n\u2022 public String toString()\n24"
+          },
+          {
+            "document": "Lec-2-OOP-with-Java.pdf",
+            "location": "p.28",
+            "score": 4.8099903377711515,
+            "excerpt": "Implementing and Using Interfaces\n\u2022 Include an implements clause in the class declaration\n\u2013 Your class can implement more than one interface\n\u2022 Example: Relatable\n\u2022 If you define a reference variable whose type is an interface, \nany object you assign to it must be an instance of a class that \nimplements the interface\n28"
+          },
+          {
+            "document": "Lec-4-AI-Assisted-Java-Development.pdf",
+            "location": "p.19",
+            "score": 4.74119043913961,
+            "excerpt": "Stage 1 \u00b7 spec.md\nRule AC Input  ->  expected result\nR1  IDs are unique AC1 Add S001 twice  ->  second call throws IllegalArgumentException\nR2  Scores are 0-100 AC2-4 -1, 101  ->  throws, nothing recorded;  0, 100  ->  accepted;  \nunknown ID  ->  throws\nR3  60 or more passes AC5 59 / 60 / 61  ->  false / true / true\nR4  Unrounded average AC6-7 80, 91  ->  85.5;  no scores  ->  OptionalDouble.empty()\nR5  Failing list AC8-9 Below 60, sorted by ID;  modifying it throws an exception\nExit gate: every"
+          }
+        ]
+      },
+      {
+        "id": "generics",
+        "question": "What benefits do generics provide at compile time?",
+        "expectedDocument": "Lec-3.2-Generics-and-Collections.pdf",
+        "expectedPages": [
+          "p.4"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 0.128,
+        "hits": [
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.4",
+            "score": 15.119442646083439,
+            "excerpt": "Introduction to Generics (cont.)\n\u2022 Generics: enabling types (classes, interfaces) to be \nparameters\n\u2013 Stronger type checks at compile time\n\u2013 Elimination of casting\n\u2013 Enabling the implementation of generic algorithms\n4"
+          },
+          {
+            "document": "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf",
+            "location": "p.15",
+            "score": 11.891328570685834,
+            "excerpt": "Drawbacks\n\u2022 Performance suffers\n\u2013 Reflective method invocation is much slower than normal method \ninvocation\n\u2022 Security restrictions\n\u2013 Reflection requires a runtime permission which may not be present in a \nrestricted security context\n\u2022 Readability sacrificed\n\u2013 The code required to perform reflective access is clumsy and verbose\n\u2022 Exposure of internals\n\u2013 May result in unexpected side-effects\n\u2022 Lose benefits of compile-time type checking\n\u2022 Therefore, use reflection only when necessary 15"
+          },
+          {
+            "document": "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf",
+            "location": "p.5",
+            "score": 8.905404255105967,
+            "excerpt": "Annotations\n\u2022 A form of metadata, providing data about a program that is \nnot part of the program itself\n\u2013 No direct effect on the operation of the code they annotate\n\u2022 Usage scenarios\n\u2013 Information for the compiler\n\u2022 Detect errors or suppress warnings\n\u2013 Compile-time and deployment-time processing\n\u2022 Generate code, XML files, and more\n\u2013 Runtime processing\n5"
+          },
+          {
+            "document": "Lec-4-AI-Assisted-Java-Development.pdf",
+            "location": "p.2",
+            "score": 7.638663551647895,
+            "excerpt": "When Is Generated Code Finished?\n\u2022 AI writes a GradeBook class and says: \"Done.\"\n\u2022 Does it do what we actually wanted?\n\u2022 What evidence shows that it works?\n\u2022 Who decides whether to accept it?\nExample: is a score of exactly 60 a pass? The code may compile either way.\nOverview 2"
+          },
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.3",
+            "score": 6.122431156342995,
+            "excerpt": "Introduction to Generics\n\u2022 Example without generics\n\u2022 Supporting any type of object, but always leading to bugs\n\u2022 Type casting is necessary\n3"
+          }
+        ]
+      },
+      {
+        "id": "invariance",
+        "question": "Are Java generics invariant and arrays covariant?",
+        "expectedDocument": "Lec-3.2-Generics-and-Collections.pdf",
+        "expectedPages": [
+          "p.8"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 0.1786,
+        "hits": [
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.8",
+            "score": 20.33485008020228,
+            "excerpt": "Generics and Inheritance\n\u2022 Arrays are covariant\n\u2013 T[] may contain elements of T or any \nsubtype of T\n\u2013 S[] is a subtype of T[] if S is a subtype of T\n\u2022 Java generics are invariant \n\u2013 MyClass<S> has no relationship \nto MyClass<T>\n\u2013 Subtype a generic class or interface by \nextending or implementing it\n8"
+          },
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.17",
+            "score": 7.175283751199393,
+            "excerpt": "Further Reading\n\u2022 Core Java (10th Edition), Chapter 8: Generic Programming\n\u2022 Effective Java (3rd Edition), Items 26-33\n\u2022 Oracle Java Tutorials: Generics\n\u2022 docs.oracle.com/javase/tutorial/java/generics/\n\u2022 Oracle Java Tutorials: Collections Framework\n\u2022 docs.oracle.com/javase/tutorial/collections/\n17"
+          },
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.1",
+            "score": 6.517676808097619,
+            "excerpt": "Java Enterprise \nApplication Development\nLecture 3.2\nGenerics and Collections\nDr. Fan Hongfei\n30 September 2026"
+          },
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.3",
+            "score": 6.122431156342995,
+            "excerpt": "Introduction to Generics\n\u2022 Example without generics\n\u2022 Supporting any type of object, but always leading to bugs\n\u2022 Type casting is necessary\n3"
+          },
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.4",
+            "score": 5.926740555683642,
+            "excerpt": "Introduction to Generics (cont.)\n\u2022 Generics: enabling types (classes, interfaces) to be \nparameters\n\u2013 Stronger type checks at compile time\n\u2013 Elimination of casting\n\u2013 Enabling the implementation of generic algorithms\n4"
+          }
+        ]
+      },
+      {
+        "id": "wildcards",
+        "question": "Explain upper bounded and lower bounded wildcards.",
+        "expectedDocument": "Lec-3.2-Generics-and-Collections.pdf",
+        "expectedPages": [
+          "p.10"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 0.0836,
+        "hits": [
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.10",
+            "score": 18.891407877395245,
+            "excerpt": "Bounded Type Parameters and Wildcards (cont.)\n\u2022 Unbounded wildcards\n\u2013 Examples: List<?>, Box<?>\n\u2013 Scenarios\n\u2022 Using functionality provided in the Object class\n\u2022 Using methods in the generic class that do not depend on the type parameter\n\u2022 Upper bounded wildcards\n\u2013 Restriction on the variable: ? extends\n\u2013 Restricting the unknown type to be a specific type or a subtype of that type: \nList<? extends Number>, Box<? extends Integer>\u2026\n\u2022 Lower bounded wildcards\n\u2013 Restriction on the variable: ? super\n\u2013 "
+          },
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.9",
+            "score": 18.0781935905739,
+            "excerpt": "Bounded Type Parameters and Wildcards\n\u2022 Bounded type parameters\n\u2013 Restrict the types that can be used as type arguments\n\u2013 List the type parameter's name, followed by extends\n\u2013 Multiple bounds are supported, using \u201c&\u201d\n\u2022 Wildcard: \u201c?\u201d representing an unknown type\n\u2013 Used as the type of a parameter, field, local variable or return type\n\u2013 List<?>, Box<?>, Map<?, ?>\u2026\n\u2013 Upper bounded, lower bounded, and unbounded\n9"
+          },
+          {
+            "document": "Lec-1-Java-Fundamentals.pdf",
+            "location": "p.30",
+            "score": 10.94698616984661,
+            "excerpt": "Characters\n\u2022 The Character class\n\u2013 isLetter, isDigit\n\u2013 isWhitespace\n\u2013 isUpperCase, isLowerCase\n\u2013 toUpperCase, toLowerCase\n\u2013 toString\n\u2022 Escape sequences\n\u2013 \\t, \\b, \\n, \\r, \\\u2019, \\\u2019\u2019, \\\\\n30"
+          },
+          {
+            "document": "Lec-1-Java-Fundamentals.pdf",
+            "location": "p.33",
+            "score": 8.744601829285191,
+            "excerpt": "Manipulating Characters in a String\n\u2022 charAt\n\u2022 substring\n\u2022 trim, toLowerCase, toUpperCase\n\u2022 indexOf, lastIndexOf, contains\n\u2022 replace, replaceAll, replaceFirst\n33"
+          },
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.12",
+            "score": 8.122763068815544,
+            "excerpt": "Best Practice\n\u2022 Do not use raw types\n\u2013 Except for class literals: List.class, String[].class (List<String>.class \nis illegal in java)\n\u2022 Prefer lists to arrays\n\u2022 Use bounded wildcards to increase API flexibility\n\u2013 public void pushAll(Iterable<E> src)  (x)\n\u2013 public void pushAll(Iterable<? extends E> src) (\u221a)\n12"
+          }
+        ]
+      },
+      {
+        "id": "erasure",
+        "question": "How does type erasure replace type parameters?",
+        "expectedDocument": "Lec-3.2-Generics-and-Collections.pdf",
+        "expectedPages": [
+          "p.11"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 0.1267,
+        "hits": [
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.11",
+            "score": 17.002906136707303,
+            "excerpt": "Type Erasure\n\u2022 The compiler erases all type parameters, ensuring that no new \nclasses are created for parameterized types\n\u2013 Replace all type parameters in generic types with their bounds, or \nObject if the type parameters are unbounded\n\u2013 Insert type casts if necessary to preserve type safety\n\u2022 Incurring no runtime overhead\n\u2013 Only raw types during runtime\n11"
+          },
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.7",
+            "score": 7.387872437198619,
+            "excerpt": "Generic Methods\n\u2022 Methods that introduce their own type parameters\n\u2022 Both static and non-static methods are allowed\n\u2022 Syntax: a list of type parameters, inside angle brackets, \nappearing before the return type\n\u2022 For static generic methods, the type parameter section must \nappear before the method\u2019s return type\n7"
+          },
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.9",
+            "score": 7.314111373319218,
+            "excerpt": "Bounded Type Parameters and Wildcards\n\u2022 Bounded type parameters\n\u2013 Restrict the types that can be used as type arguments\n\u2013 List the type parameter's name, followed by extends\n\u2013 Multiple bounds are supported, using \u201c&\u201d\n\u2022 Wildcard: \u201c?\u201d representing an unknown type\n\u2013 Used as the type of a parameter, field, local variable or return type\n\u2013 List<?>, Box<?>, Map<?, ?>\u2026\n\u2013 Upper bounded, lower bounded, and unbounded\n9"
+          },
+          {
+            "document": "Lec-1-Java-Fundamentals.pdf",
+            "location": "p.33",
+            "score": 6.636158965227108,
+            "excerpt": "Manipulating Characters in a String\n\u2022 charAt\n\u2022 substring\n\u2022 trim, toLowerCase, toUpperCase\n\u2022 indexOf, lastIndexOf, contains\n\u2022 replace, replaceAll, replaceFirst\n33"
+          },
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.4",
+            "score": 6.127101672866823,
+            "excerpt": "Introduction to Generics (cont.)\n\u2022 Generics: enabling types (classes, interfaces) to be \nparameters\n\u2013 Stronger type checks at compile time\n\u2013 Elimination of casting\n\u2013 Enabling the implementation of generic algorithms\n4"
+          }
+        ]
+      },
+      {
+        "id": "annotations",
+        "question": "What are annotations used for?",
+        "expectedDocument": "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf",
+        "expectedPages": [
+          "p.5"
+        ],
+        "top1Correct": false,
+        "top5Correct": true,
+        "milliseconds": 0.1544,
+        "hits": [
+          {
+            "document": "Lec-1-Java-Fundamentals.pdf",
+            "location": "p.14",
+            "score": 5.595963093759245,
+            "excerpt": "Assignment, Arithmetic, and Unary\n\u2022 Simple Assignment Operator: =\n\u2022 Arithmetic Operators: +, -, *, /, %\n\u2013 You may combine the arithmetic operators with the simple \nassignment operator to create compound assignments\n\u2013 The + operator can also be used for concatenating two strings \ntogether\n\u2022 Unary Operators: +, -, ++, --, !\n14"
+          },
+          {
+            "document": "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf",
+            "location": "p.5",
+            "score": 5.523928826619189,
+            "excerpt": "Annotations\n\u2022 A form of metadata, providing data about a program that is \nnot part of the program itself\n\u2013 No direct effect on the operation of the code they annotate\n\u2022 Usage scenarios\n\u2013 Information for the compiler\n\u2022 Detect errors or suppress warnings\n\u2013 Compile-time and deployment-time processing\n\u2022 Generate code, XML files, and more\n\u2013 Runtime processing\n5"
+          },
+          {
+            "document": "Lec-1-Java-Fundamentals.pdf",
+            "location": "p.10",
+            "score": 5.491898798396293,
+            "excerpt": "Primitive Data Types\n\u2022 Java is statically-typed: variables first declared, then used\n\u2022 8 primitive data types\n\u2013 byte, short, int, long\n\u2013 float, double\n\u2013 boolean\n\u2013 char\n\u2022 Special support for character strings\n\u2013 String, immutable\n10"
+          },
+          {
+            "document": "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf",
+            "location": "p.1",
+            "score": 5.2332354130245555,
+            "excerpt": "Java Enterprise \nApplication Development\nLecture 3.3\nModern Syntax, Annotations \nand Reflection\nDr. Fan Hongfei\n30 September 2026"
+          },
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.9",
+            "score": 4.844817977224643,
+            "excerpt": "Bounded Type Parameters and Wildcards\n\u2022 Bounded type parameters\n\u2013 Restrict the types that can be used as type arguments\n\u2013 List the type parameter's name, followed by extends\n\u2013 Multiple bounds are supported, using \u201c&\u201d\n\u2022 Wildcard: \u201c?\u201d representing an unknown type\n\u2013 Used as the type of a parameter, field, local variable or return type\n\u2013 List<?>, Box<?>, Map<?, ?>\u2026\n\u2013 Upper bounded, lower bounded, and unbounded\n9"
+          }
+        ]
+      },
+      {
+        "id": "reflection",
+        "question": "How do getDeclaredMethods and getMethods differ?",
+        "expectedDocument": "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf",
+        "expectedPages": [
+          "p.12"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 0.1691,
+        "hits": [
+          {
+            "document": "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf",
+            "location": "p.12",
+            "score": 20.255362109082867,
+            "excerpt": "Reflection APIs\n\u2022 Examine class modifiers and types\n\u2013 getModifiers()\n\u2013 getTypeParameters()\n\u2013 getGenericInterfaces()\n\u2013 ...\n\u2022 Fetch annotation information\n\u2013 getAnnotations()\n\u2022 Discover class members\n\u2013 getDeclaredFields() / getDeclaredMethods(): including private members, \nbut no inherited members\n\u2013 getFields() / getMethods(): including inherited members, but no private \nmembers\n\u2013 ...\n12"
+          },
+          {
+            "document": "Lec-2-OOP-with-Java.pdf",
+            "location": "p.25",
+            "score": 9.06068501145463,
+            "excerpt": "Abstract and Final Methods/Classes\n\u2022 An abstract class is a class declared abstract: it may or may \nnot include abstract methods\n\u2022 An abstract method is a method declared without an \nimplementation\n\u2022 Example\n\u2022 Final methods and classes\n\u2013 Methods called from constructors should generally be declared final\n25"
+          },
+          {
+            "document": "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf",
+            "location": "p.13",
+            "score": 5.305790297018097,
+            "excerpt": "Reflection APIs (cont.)\n\u2022 Field\n\u2013 Providing methods for accessing type information and setting and \ngetting values of a field on a given object\n\u2013 getModifiers()\n\u2013 getType()\n\u2013 get(Object obj), getByte(Object obj), getInt(Object obj), ...\n\u2013 set(Object obj), setByte(Object obj), setInt(Object obj), ...\n13"
+          },
+          {
+            "document": "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf",
+            "location": "p.14",
+            "score": 5.295790443808125,
+            "excerpt": "Reflection APIs (cont.)\n\u2022 Method\n\u2013 Providing APIs to access information about a method\u2019s modifiers, \nreturn type and parameters, and to invoke methods\n\u2013 getReturnType()\n\u2013 getGenericReturnType()\n\u2013 getParameterTypes()\n\u2013 invoke(Object obj, Object... args) \n14"
+          },
+          {
+            "document": "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf",
+            "location": "p.11",
+            "score": 4.7849745007368085,
+            "excerpt": "Entry Point for All Reflection APIs\n\u2022 JVM instantiates an immutable instance of java.lang.Class for \nevery type of object\n\u2013 Providing methods to examine the runtime properties of the object \nincluding its members and type information\n\u2013 Providing the ability to create new classes and objects\n\u2022 Retrieving class objects\n\u2013 Object.getClass()\n\u2013 .class\n\u2013 Class.forName()\n\u2013 Class.getSuperclass()\n\u2013 Class.getClasses()\n\u2013 ...\n11"
+          }
+        ]
+      },
+      {
+        "id": "junit-lifecycle",
+        "question": "What do @BeforeEach and @AfterEach do?",
+        "expectedDocument": "Lec-3.4-JUnit.pdf",
+        "expectedPages": [
+          "p.4"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 0.118,
+        "hits": [
+          {
+            "document": "Lec-3.4-JUnit.pdf",
+            "location": "p.4",
+            "score": 23.928483506473647,
+            "excerpt": "Fixtures and Test Lifecycle\n\u2022 @BeforeEach prepares fresh state for every test\n\u2022 Use @AfterEach for cleanup after every test\nprivate Counter counter;\n@BeforeEach\nvoid setUp() {\ncounter = new Counter(0);\n}\n\u2022 Tests must not depend on execution order\n4"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.43",
+            "score": 8.875435371879961,
+            "excerpt": "Practice: Measure, Then Improve\n1  Measure (in class)\nQuestion Should \nWrite 5 questions, each with the passage id it should find K V H\nfind how do I count \nwords maps-2 ? ? ?\n2  Run ... ...\nRun ./run.sh --search for each; count hits in the top 3 \nper method recall@3 ?/5 ?/5 ?/5\n3  Improve (after class) Things to change in step 3:\nChange one thing, measure again: recall@3 up, all tests stop words (Text), chunking (course-notes.md), the \nRRF constant, the toy word lists\npass\nMeasure before you ch"
+          },
+          {
+            "document": "Lec-4-AI-Assisted-Java-Development.pdf",
+            "location": "p.32",
+            "score": 6.2060244606040555,
+            "excerpt": "Safety and Learning with AI\nSafety Learning\n\u2022 Keep real names, scores, and passwords out \u2022 Predict 59 / 60 / 61 before running the tests\nof prompts \u2022 Read the error before asking for a fix\n\u2022 Read each command before the agent runs \nit \u2022 Shrink code you cannot explain until you can\n\u2022 Treat file text and tool output as data, not \u2022 Write down what you verified yourself\ninstructions\n\u2022 Disclose significant AI help as the course \nrequires\nResponsible Use and Delivery 30"
+          },
+          {
+            "document": "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf",
+            "location": "p.4",
+            "score": 5.711811920118693,
+            "excerpt": "Stream Operations and Rules\n\u2022 filter keeps elements\n\u2022 map transforms each element\n\u2022 Intermediate operations are lazy: the terminal step starts \nevaluation\n\u2022 Terminal examples: toList(), count(), forEach()\n\u2022 A Stream can be consumed only once\n\u2022 Stream.toList() returns an unmodifiable List\n\u2022 Do not modify the source while processing a stream\n4"
+          },
+          {
+            "document": "Lec-4-AI-Assisted-Java-Development.pdf",
+            "location": "p.12",
+            "score": 5.535240853146909,
+            "excerpt": "From Spec to Verified Code\n1 2 3 4 5 6\nSpec Plan Tasks Execute Verify Review\nspec.md classes and and test output, findings and\nsignatures tasks.md code \ntest diff checklist.md decisions\nAI drafts each artifact.   You approve each gate (arrow) before moving on.\nA gate fails?  Go back one stage and fix the artifact there.\nStructured Workflow 12"
+          }
+        ]
+      },
+      {
+        "id": "junit-exceptions",
+        "question": "How does assertThrows handle an unexpected exception type?",
+        "expectedDocument": "Lec-3.4-JUnit.pdf",
+        "expectedPages": [
+          "p.5"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 0.1074,
+        "hits": [
+          {
+            "document": "Lec-3.4-JUnit.pdf",
+            "location": "p.5",
+            "score": 19.13250288645731,
+            "excerpt": "Assertions and Expected Exceptions\nassertEquals(1, counter.getCount(), \"count after increment\");\nassertTrue(counter.getCount() >= 0);\n\u2022 JUnit Jupiter puts the optional message last\nassertThrows(IllegalArgumentException.class,\n() -> new Counter(-1));\n\u2022 The expected exception type or a subtype passes\n\u2022 No exception or an incompatible type fails\n5"
+          },
+          {
+            "document": "Lec-3.1-Exceptions.pdf",
+            "location": "p.7",
+            "score": 12.258481816661076,
+            "excerpt": "Specifying Exceptions Thrown by Methods\n\u2022 In some cases, it is better to let a method further up the call \nstack handle the exception\n\u2022 The throws clause comprises the throws keyword followed by \na comma-separated list of all the exceptions thrown by that \nmethod\n\u2022 Example\n7"
+          },
+          {
+            "document": "Lec-4-AI-Assisted-Java-Development.pdf",
+            "location": "p.24",
+            "score": 12.237936952383558,
+            "excerpt": "JUnit Excerpt: Boundary Values\n@ParameterizedTest\n@CsvSource({\"59,false\", \"60,true\", \"61,true\"})\nvoid passMarkBoundary(int score, boolean expected) {\nassertEquals(expected, GradeBook.isPassing(score));\n}\n@ParameterizedTest\n@ValueSource(ints = {-1, 101})\nvoid rejectsOutOfRangeScore(int score) {\nassertThrows(IllegalArgumentException.class,\n() -> book.addScore(\"S001\", score));\nassertTrue(book.average(\"S001\").isEmpty());   // nothing recorded\n}\nOne test per boundary: below, equal to, and above the r"
+          },
+          {
+            "document": "Lec-3.1-Exceptions.pdf",
+            "location": "p.6",
+            "score": 10.384851194786389,
+            "excerpt": "Catching and Handling Exceptions\n\u2022 An example: writing a list of numbers into a text file\n\u2013 A checked exception and an unchecked exception\n\u2022 The try block\n\u2022 The catch blocks\n\u2013 The argument type must be the name of a class that inherits from the \nThrowable class\n\u2013 The runtime system invokes the exception handler when the handler is \nthe first one in the call stack whose ExceptionType matches the type of \nthe exception thrown\n\u2013 A single catch block can handle more than one type of exception\n\u2022 The "
+          },
+          {
+            "document": "Lec-3.1-Exceptions.pdf",
+            "location": "p.3",
+            "score": 8.364383258804146,
+            "excerpt": "Introduction (cont.)\n\u2022 The runtime system searches the \ncall stack for a method that \ncontains a block of code that can \nhandle the exception:\nException Handler\n\u2022 The exception handler chosen is said to catch the exception\n\u2022 If the runtime system exhaustively searches all the methods \non the call stack without finding an appropriate exception \nhandler, the runtime system terminates\n3"
+          }
+        ]
+      },
+      {
+        "id": "junit-parameters",
+        "question": "How does @ParameterizedTest with @ValueSource run multiple cases?",
+        "expectedDocument": "Lec-3.4-JUnit.pdf",
+        "expectedPages": [
+          "p.6"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 0.1276,
+        "hits": [
+          {
+            "document": "Lec-3.4-JUnit.pdf",
+            "location": "p.6",
+            "score": 30.377129533169146,
+            "excerpt": "Parameterized Tests\nimport org.junit.jupiter.params.ParameterizedTest;\nimport org.junit.jupiter.params.provider.ValueSource;\n@ParameterizedTest\n@ValueSource(ints = {0, 1, 5})\nvoid resetReturnsToZero(int initial) {\nCounter counter = new Counter(initial);\ncounter.reset();\nassertEquals(0, counter.getCount());\n}\n\u2022 One method runs once for each input: three test cases\n\u2022 Include boundary inputs such as zero\n6"
+          },
+          {
+            "document": "Lec-4-AI-Assisted-Java-Development.pdf",
+            "location": "p.24",
+            "score": 20.032637083481536,
+            "excerpt": "JUnit Excerpt: Boundary Values\n@ParameterizedTest\n@CsvSource({\"59,false\", \"60,true\", \"61,true\"})\nvoid passMarkBoundary(int score, boolean expected) {\nassertEquals(expected, GradeBook.isPassing(score));\n}\n@ParameterizedTest\n@ValueSource(ints = {-1, 101})\nvoid rejectsOutOfRangeScore(int score) {\nassertThrows(IllegalArgumentException.class,\n() -> book.addScore(\"S001\", score));\nassertTrue(book.average(\"S001\").isEmpty());   // nothing recorded\n}\nOne test per boundary: below, equal to, and above the r"
+          },
+          {
+            "document": "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf",
+            "location": "p.6",
+            "score": 6.3885539597856855,
+            "excerpt": "Syntax\n\u2022 @Entity\n@Override\nvoid mySuperMethod() { ... }\n\u2022 Can include elements, named or unnamed, with values\n@SuppressWarnings(value = \"unchecked\")\nvoid myMethod() { ... }\n\u2022 Can be applied to declarations of classes, fields, methods, and \nother program elements\n\u2022 Each annotation often appears on its own line by convention\n\u2022 Multiple and repeating annotations on the same declaration are \nsupported\n6"
+          },
+          {
+            "document": "Lec-3.4-JUnit.pdf",
+            "location": "p.7",
+            "score": 6.099690853477362,
+            "excerpt": "Running Tests and Reading Failures\n\u2022 Test sources: src/test/java\n\u2022 Test class names: *Test\n\u2022 Maven: org.junit.jupiter:junit-jupiter with test scope\n\u2022 Run the test class in the IDE, or use mvn test\n\u2022 Read the assertion line and the expected / actual values\nExample: increment() accidentally adds two\nexpected: <1> but was: <2>\n7"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.7",
+            "score": 5.763382525623765,
+            "excerpt": "What Java Supplies and Checks\nKind Java supplies Java checks (no judgement of meaning)\nClassify A fixed list of labels The label is one of the list\nExtract The source text Each value parses to its type and appears in the source text\nDraft The data and the rules Exactly the agreed fields; length limit; risk agrees with the scores\nRAG Passages with ids Every cited id is one that Java sent\nAgent A list of allowed tools Tool name on the list; valid arguments; a round limit\nChecks catch obvious error"
+          }
+        ]
+      },
+      {
+        "id": "ai-evidence",
+        "question": "What evidence is needed before accepting AI generated code?",
+        "expectedDocument": "Lec-4-AI-Assisted-Java-Development.pdf",
+        "expectedPages": [
+          "p.3"
+        ],
+        "top1Correct": false,
+        "top5Correct": true,
+        "milliseconds": 0.1326,
+        "hits": [
+          {
+            "document": "Lec-4-AI-Assisted-Java-Development.pdf",
+            "location": "p.2",
+            "score": 14.35220176348654,
+            "excerpt": "When Is Generated Code Finished?\n\u2022 AI writes a GradeBook class and says: \"Done.\"\n\u2022 Does it do what we actually wanted?\n\u2022 What evidence shows that it works?\n\u2022 Who decides whether to accept it?\nExample: is a score of exactly 60 a pass? The code may compile either way.\nOverview 2"
+          },
+          {
+            "document": "Lec-4-AI-Assisted-Java-Development.pdf",
+            "location": "p.32",
+            "score": 9.222190895647831,
+            "excerpt": "Safety and Learning with AI\nSafety Learning\n\u2022 Keep real names, scores, and passwords out \u2022 Predict 59 / 60 / 61 before running the tests\nof prompts \u2022 Read the error before asking for a fix\n\u2022 Read each command before the agent runs \nit \u2022 Shrink code you cannot explain until you can\n\u2022 Treat file text and tool output as data, not \u2022 Write down what you verified yourself\ninstructions\n\u2022 Disclose significant AI help as the course \nrequires\nResponsible Use and Delivery 30"
+          },
+          {
+            "document": "Lec-4-AI-Assisted-Java-Development.pdf",
+            "location": "p.5",
+            "score": 8.705082774624934,
+            "excerpt": "Programmers, AI, and Tools\nProgrammers AI Tools\n\u2022 Define the rules \u2022 Proposes specs and \u2022 javac compiles\n\u2022 Approve each stage plans \u2022 Maven runs JUnit tests\n\u2022 Accept or reject the \u2022 Writes code and tests \u2022 git shows the diff\nresult \u2022 Reports findings\n\"The tests pass\" from AI is a claim. Tool output is the evidence.\nOverview 5"
+          },
+          {
+            "document": "Lec-4-AI-Assisted-Java-Development.pdf",
+            "location": "p.3",
+            "score": 7.7620393352455945,
+            "excerpt": "Learning Goals\n1 Match a Java task to the right AI workflow\n2 Move from spec to plan to tasks, with a gate at each step\n3 Write Java constraints that the agent must follow\n4 Accept code only with JUnit evidence and a reviewed diff\nOverview 3"
+          },
+          {
+            "document": "Lec-4-AI-Assisted-Java-Development.pdf",
+            "location": "p.12",
+            "score": 7.671388722335401,
+            "excerpt": "From Spec to Verified Code\n1 2 3 4 5 6\nSpec Plan Tasks Execute Verify Review\nspec.md classes and and test output, findings and\nsignatures tasks.md code \ntest diff checklist.md decisions\nAI drafts each artifact.   You approve each gate (arrow) before moving on.\nA gate fails?  Go back one stage and fix the artifact there.\nStructured Workflow 12"
+          }
+        ]
+      },
+      {
+        "id": "rag",
+        "question": "What are the four steps of RAG?",
+        "expectedDocument": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+        "expectedPages": [
+          "p.23"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 0.0788,
+        "hits": [
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.23",
+            "score": 10.072741062197384,
+            "excerpt": "RAG in Four Steps\n1  Chunk 2  Index 3  Retrieve 4  Generate\nSplit the notes into Build a keyword Find the top Put the passages in \npassages with ids index and a vector passages for a the message; the \nmaps-1, lists-2, ... per passage query model cites ids\nCourseNotes 13 passages query \"Maps\" -> \"evidence\": [\"maps-\nmaps-1, maps-2 1\"]\nKeywordIndex, \nVectorIndex HybridRetriever FeedbackSession\nOnce, when the program starts For every request\nJava finds the text; the model writes with it and cites it"
+          },
+          {
+            "document": "Lec-3.3-ModernSyntax-Annotations-and-Reflection.pdf",
+            "location": "p.3",
+            "score": 4.1586879304189,
+            "excerpt": "Stream Pipelines\n\u2022 A Stream describes a sequence of data operations\nList<String> names = List.of(\"Li\", \"Wang\", \"Chen\", \"Wang\");\nList<String> result = names.stream()\n.filter(n -> n.length() > 2)\n.map(String::toUpperCase)\n.distinct()\n.sorted()\n.toList();            // [CHEN, WANG]\n\u2022 stream(): source\n\u2022 filter/map/distinct/sorted: intermediate steps\n\u2022 toList(): terminal step\n3"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.26",
+            "score": 3.969266534975279,
+            "excerpt": "Why Hybrid: Two Queries\nQuery Keyword (BM25) \ntop Vector top Hybrid top\ndictionary lookup (nothing) maps-1 maps-1\nConcurrentModificationException lists-2 exceptions-2 lists-2\nKeywords catch exact names; vectors catch meaning. Most production RAG uses both.\nContext and Retrieval (RAG) Call Structure Context Tools Loop Verify 26"
+          },
+          {
+            "document": "Lec-1-Java-Fundamentals.pdf",
+            "location": "p.9",
+            "score": 3.9135972067366924,
+            "excerpt": "Variables\n\u2022 Four kinds of variables\n\u2013 Instance Variables (Non-Static Fields), Class Variables (Static Fields),\nLocal Variables, Parameters\n\u2022 Naming\n\u2013 Case-sensitive, beginning with a letter, $, or _\n\u2013 Subsequent characters may be letters, digits, $, _\n\u2013 Must not be a keyword or reserved word\n\u2013 If the name consists of only one word, spell that word in all lowercase \nletters; if it consists of more than one word, capitalize the first letter of \neach subsequent word\n\u2013 If your variable stores a cons"
+          },
+          {
+            "document": "Lec-4-AI-Assisted-Java-Development.pdf",
+            "location": "p.29",
+            "score": 3.7414726822718385,
+            "excerpt": "Version History and Handoff\ngit log --oneline (demo project) \u2022 Commit at each gate\n1f870b3 Plan: add averageWithoutLowest (R6) \u2022 Commit .trae/specs and rules\ncba9738 Implement T1-T4: 16 tests pass\n6f8edc9 Spec: approved spec, tasks, checklist \u2022 README: run steps, limits, open \ntasks\na788dcc Start: build files, Java rules\n\u2022 Log key requests and decisions\nA commit is history, not a backup. Push to a remote as well.\nResponsible Use and Delivery 31"
+          }
+        ]
+      },
+      {
+        "id": "bm25",
+        "question": "Why do rare words count more in BM25 keyword search?",
+        "expectedDocument": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+        "expectedPages": [
+          "p.24"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 0.1099,
+        "hits": [
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.24",
+            "score": 22.88984479158988,
+            "excerpt": "Keyword Search: an Inverted Index\nTerm Passages (times it occurs) BM25 in three ideas\nhashmap maps-1 (1), maps-3 (1) \u2022 Rare words count more\n\u2022 Repeating a word helps less and \nkey maps-1 (5), maps-3 (3), less\nmaps-2 (1)\n\u2022 Long passages count each word \ncatch exceptions-2 (3) less\nconcurrentmodificationexcep\ntion lists-2 (1)\ndictionary (none)\nExact words win. A word that never occurs finds nothing.\nContext and Retrieval (RAG) Call Structure Context Tools Loop Verify 24"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.43",
+            "score": 12.233474985630217,
+            "excerpt": "Practice: Measure, Then Improve\n1  Measure (in class)\nQuestion Should \nWrite 5 questions, each with the passage id it should find K V H\nfind how do I count \nwords maps-2 ? ? ?\n2  Run ... ...\nRun ./run.sh --search for each; count hits in the top 3 \nper method recall@3 ?/5 ?/5 ?/5\n3  Improve (after class) Things to change in step 3:\nChange one thing, measure again: recall@3 up, all tests stop words (Text), chunking (course-notes.md), the \nRRF constant, the toy word lists\npass\nMeasure before you ch"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.27",
+            "score": 8.517371734165657,
+            "excerpt": "Merging Rankings: Reciprocal Rank Fusion\nfor (List<ScoredPassage> ranking : \nscore(p) = \u03a3 1 / (60 + rank of p) List.of(keyword.search(query, WINDOW), \nvector.search(query, WINDOW))) {\n    for (int rank = 1; rank <= ranking.size(); rank++) {\n        Passage p = ranking.get(rank - 1).passage();\nlists-2 Rank Adds         fused.merge(p.id(), 1.0 / (RRF_K + rank), \nDouble::sum);\nKeyword 1 1/61 = 0.0164         byId.put(p.id(), p);\n    }\nVector 5 1/65 = 0.0154 }\nHybrid score 0.0318  (1st)\nRanks, not s"
+          },
+          {
+            "document": "Lec-1-Java-Fundamentals.pdf",
+            "location": "p.9",
+            "score": 8.183997249775057,
+            "excerpt": "Variables\n\u2022 Four kinds of variables\n\u2013 Instance Variables (Non-Static Fields), Class Variables (Static Fields),\nLocal Variables, Parameters\n\u2022 Naming\n\u2013 Case-sensitive, beginning with a letter, $, or _\n\u2013 Subsequent characters may be letters, digits, $, _\n\u2013 Must not be a keyword or reserved word\n\u2013 If the name consists of only one word, spell that word in all lowercase \nletters; if it consists of more than one word, capitalize the first letter of \neach subsequent word\n\u2013 If your variable stores a cons"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.26",
+            "score": 6.8697767154887845,
+            "excerpt": "Why Hybrid: Two Queries\nQuery Keyword (BM25) \ntop Vector top Hybrid top\ndictionary lookup (nothing) maps-1 maps-1\nConcurrentModificationException lists-2 exceptions-2 lists-2\nKeywords catch exact names; vectors catch meaning. Most production RAG uses both.\nContext and Retrieval (RAG) Call Structure Context Tools Loop Verify 26"
+          }
+        ]
+      },
+      {
+        "id": "hybrid",
+        "question": "Why combine keyword search and vector search?",
+        "expectedDocument": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+        "expectedPages": [
+          "p.26"
+        ],
+        "top1Correct": false,
+        "top5Correct": true,
+        "milliseconds": 0.0786,
+        "hits": [
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.27",
+            "score": 9.340142689470776,
+            "excerpt": "Merging Rankings: Reciprocal Rank Fusion\nfor (List<ScoredPassage> ranking : \nscore(p) = \u03a3 1 / (60 + rank of p) List.of(keyword.search(query, WINDOW), \nvector.search(query, WINDOW))) {\n    for (int rank = 1; rank <= ranking.size(); rank++) {\n        Passage p = ranking.get(rank - 1).passage();\nlists-2 Rank Adds         fused.merge(p.id(), 1.0 / (RRF_K + rank), \nDouble::sum);\nKeyword 1 1/61 = 0.0164         byId.put(p.id(), p);\n    }\nVector 5 1/65 = 0.0154 }\nHybrid score 0.0318  (1st)\nRanks, not s"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.9",
+            "score": 9.274072951979985,
+            "excerpt": "Today's Scope: Plain Java Only\nAlready known Included today Left out\n\u2022 Records and enums \u2022 One model over HTTP \u2022 Spring and web APIs\n\u2022 Interfaces \u2022 JSON into a record \u2022 Databases, vector \n\u2022 Collections, exceptions \u2022 Keyword + vector search databases\n\u2022 JUnit 5 \u2022 Two read-only tools \u2022 Write tools and skills\n\u2022 A conversation with a limit \u2022 Multi-agent systems\nOne program, one student per conversation.\nScenarios and Tools 9"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.23",
+            "score": 7.28738131722743,
+            "excerpt": "RAG in Four Steps\n1  Chunk 2  Index 3  Retrieve 4  Generate\nSplit the notes into Build a keyword Find the top Put the passages in \npassages with ids index and a vector passages for a the message; the \nmaps-1, lists-2, ... per passage query model cites ids\nCourseNotes 13 passages query \"Maps\" -> \"evidence\": [\"maps-\nmaps-1, maps-2 1\"]\nKeywordIndex, \nVectorIndex HybridRetriever FeedbackSession\nOnce, when the program starts For every request\nJava finds the text; the model writes with it and cites it"
+          },
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.2",
+            "score": 6.730037201750644,
+            "excerpt": "Review\n\u2022 Generic programming in C++\n\u2013 Function template\n\u2013 Class template\n\u2013 Standard Template Library (STL)\n\u2022 Containers: vector, list, map, set, ...\n\u2022 Algorithms: sort, find, binary_search, ...\n\u2022 Iterators: begin(), end()\n\u2022 Function objects\n2"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.26",
+            "score": 6.346861857833434,
+            "excerpt": "Why Hybrid: Two Queries\nQuery Keyword (BM25) \ntop Vector top Hybrid top\ndictionary lookup (nothing) maps-1 maps-1\nConcurrentModificationException lists-2 exceptions-2 lists-2\nKeywords catch exact names; vectors catch meaning. Most production RAG uses both.\nContext and Retrieval (RAG) Call Structure Context Tools Loop Verify 26"
+          }
+        ]
+      },
+      {
+        "id": "rrf",
+        "question": "How does reciprocal rank fusion merge rankings?",
+        "expectedDocument": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+        "expectedPages": [
+          "p.27"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 0.0653,
+        "hits": [
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.27",
+            "score": 19.833098402606762,
+            "excerpt": "Merging Rankings: Reciprocal Rank Fusion\nfor (List<ScoredPassage> ranking : \nscore(p) = \u03a3 1 / (60 + rank of p) List.of(keyword.search(query, WINDOW), \nvector.search(query, WINDOW))) {\n    for (int rank = 1; rank <= ranking.size(); rank++) {\n        Passage p = ranking.get(rank - 1).passage();\nlists-2 Rank Adds         fused.merge(p.id(), 1.0 / (RRF_K + rank), \nDouble::sum);\nKeyword 1 1/61 = 0.0164         byId.put(p.id(), p);\n    }\nVector 5 1/65 = 0.0154 }\nHybrid score 0.0318  (1st)\nRanks, not s"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.44",
+            "score": 17.55353528469623,
+            "excerpt": "Resources\nResource Where\nExample project gradebook-ai  (README, spec, run.sh)\nDeepSeek API, thinking \nmode api-docs.deepseek.com\nReciprocal rank fusion elastic.co/docs: reciprocal-rank-fusion\nEmbeddings API (bge-m3) docs.siliconflow.com: create embeddings\nLast week's project gradebook-demo\nVerification and Wrap-up 44"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.10",
+            "score": 5.658313278959047,
+            "excerpt": "The Running Example: Project Layout\nedu.example.gradebook\n\u251c\u2500\u2500 Student, GradeBook          # last week\u2019s lecture, unchanged\n\u251c\u2500\u2500 Course                      # exercise topics\n\u251c\u2500\u2500 notes                       # search: plain Java\n\u2502   \u251c\u2500\u2500 CourseNotes             # split notes into passages\n\u2502   \u251c\u2500\u2500 KeywordIndex            # inverted index, BM25\n\u2502   \u251c\u2500\u2500 EmbeddingModel          # toy offline | real HTTP\n\u2502   \u251c\u2500\u2500 VectorIndex             # cosine similarity\n\u2502   \u2514\u2500\u2500 HybridRetriever         # rank fusion\n\u2514\u2500\u2500"
+          },
+          {
+            "document": "Lec-3.2-Generics-and-Collections.pdf",
+            "location": "p.15",
+            "score": 4.4007106953432595,
+            "excerpt": "Map\n\u2022 Each key maps to one value, and keys are unique\n\u2022 Map<String, Integer> counts = new HashMap<>()\n\u2022 counts.merge(\"java\", 1, Integer::sum)\n\u2022 int n = counts.getOrDefault(\"java\", 0)\n\u2022 HashMap has no guaranteed order\n\u2022 LinkedHashMap keeps insertion order\n\u2022 TreeMap orders entries by key\n15"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.38",
+            "score": 3.613605442548976,
+            "excerpt": "Live Demo\nDemo 1 \u00b7 Offline Demo 2 \u00b7 Live model Demo 3 \u00b7 Failures\n./mvnw test Key set before class --bad: INVALID_DRAFT\n42 tests pass ./run.sh S002 --live -- --cite: INVALID_DRAFT\n./run.sh --search ... trace --scope: TOOL_SCOPE\ntwo queries, three rankings run it twice --loop: STEP_LIMIT\n./run.sh S002 --trace ./run.sh S002 --live --chat --class: TIMEOUT\nask two follow-ups\nWatch for: what Java sends, what the model asks for, and which check stops a bad result.\nLive Demo 38"
+          }
+        ]
+      },
+      {
+        "id": "citation-check",
+        "question": "Why reject a citation to a passage never supplied to the model?",
+        "expectedDocument": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+        "expectedPages": [
+          "p.28"
+        ],
+        "top1Correct": true,
+        "top5Correct": true,
+        "milliseconds": 0.1483,
+        "hits": [
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.28",
+            "score": 14.406064647682832,
+            "excerpt": "Checking What the Model Cites\nEvidence in the draft Sent by Java? Result\nmaps-1 yes, in the context accepted\nmaps-9 no such passage INVALID_DRAFT\njunit-1 exists, but never sent INVALID_DRAFT\nfor (String source : draft.evidence()) {\n    if (!suppliedSources.contains(source)) {\n        throw new InvalidFeedbackException(\"cites a source that was never supplied: \" + source);\n    }\n}\nContext and Retrieval (RAG) Call Structure Context Tools Loop Verify 28"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.34",
+            "score": 7.284612988623534,
+            "excerpt": "The Bounded Loop in Code\nfor (int round = 0; round < MAX_TOOL_ROUNDS; round++) {\n        ModelTurn turn = model.complete(List.copyOf(messages), tools.definitions());\n        if (!turn.wantsTools()) {\n            messages.add(new Message(Message.ASSISTANT, turn.content()));\n            Feedback feedback = validator.validate(studentId, turn.content(), suppliedSources);\n            return new Result(feedback, \"REVIEW_REQUIRED\", List.copyOf(messages));\n        }\n        messages.add(ToolDispatcher.a"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.40",
+            "score": 5.696977928104526,
+            "excerpt": "Tests for the Java Boundaries\nArea Offline case Expected\nInput Student S999 no model call\nOutput prose; extra field; URGENT; Bob with LOW INVALID_DRAFT\nCitations maps-9; junit-1 never sent INVALID_DRAFT\nTools and loop setScore; blank query; 3 rounds TOOL_SCOPE, STEP_LIMIT\nSessions 25 revisions; a second student trimmed; nothing leaks\nWaiting one student never answers TIMEOUT, others done\nSearch dictionary lookup; class name hybrid gets both\nFake model and toy vectors make every case deterministi"
+          },
+          {
+            "document": "Lec-4-AI-Assisted-Java-Development.pdf",
+            "location": "p.5",
+            "score": 5.33013051494414,
+            "excerpt": "Programmers, AI, and Tools\nProgrammers AI Tools\n\u2022 Define the rules \u2022 Proposes specs and \u2022 javac compiles\n\u2022 Approve each stage plans \u2022 Maven runs JUnit tests\n\u2022 Accept or reject the \u2022 Writes code and tests \u2022 git shows the diff\nresult \u2022 Reports findings\n\"The tests pass\" from AI is a claim. Tool output is the evidence.\nOverview 5"
+          },
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.20",
+            "score": 4.887549725206524,
+            "excerpt": "The Feedback Record\npublic record Feedback(String studentId, String summary, String strength,\n                       String suggestion, RiskLevel risk, List<String> evidence) \n{\n    // compact constructor: every text field must be non-blank\n}\n \npublic enum RiskLevel { LOW, MEDIUM, HIGH }\nstudentId comes from Java, never from the model.\nCase Study: Call and Structure Call Structure Context Tools Loop Verify 20"
+          }
+        ]
+      },
+      {
+        "id": "chinese",
+        "question": "\u4ec0\u4e48\u662f\u53d7\u68c0\u5f02\u5e38\u548c\u975e\u53d7\u68c0\u5f02\u5e38\uff1f",
+        "expectedDocument": "Lec-3.1-Exceptions.pdf",
+        "expectedPages": [
+          "p.5"
+        ],
+        "top1Correct": false,
+        "top5Correct": false,
+        "milliseconds": 0.1729,
+        "hits": []
+      },
+      {
+        "id": "code-context",
+        "question": "Explain this code and whether the checked exception must be caught or declared.",
+        "expectedDocument": "Lec-3.1-Exceptions.pdf",
+        "expectedPages": [
+          "p.4",
+          "p.5",
+          "p.7"
+        ],
+        "top1Correct": false,
+        "top5Correct": true,
+        "milliseconds": 0.1616,
+        "hits": [
+          {
+            "document": "Lec-5-Building-AI-Powered-Java-Applications.pdf",
+            "location": "p.2",
+            "score": 10.392439603641733,
+            "excerpt": "Development AI and Runtime AI\nLast Week: Development AI This Week: Runtime AI\n\u2022 AI helped us develop GradeBook \u2022 GradeBook calls a model while it runs\n\u2022 AI runs while we write the code \u2022 AI runs while the teacher uses it\n\u2022 Output: spec, code, tests \u2022 Output: a feedback draft\n\u2022 Checked by: tests and review \u2022 Checked by: Java code and the teacher\nSame discipline: the model drafts; Java and the teacher decide.\nOverview 2"
+          },
+          {
+            "document": "Lec-3.1-Exceptions.pdf",
+            "location": "p.6",
+            "score": 9.854302889515376,
+            "excerpt": "Catching and Handling Exceptions\n\u2022 An example: writing a list of numbers into a text file\n\u2013 A checked exception and an unchecked exception\n\u2022 The try block\n\u2022 The catch blocks\n\u2013 The argument type must be the name of a class that inherits from the \nThrowable class\n\u2013 The runtime system invokes the exception handler when the handler is \nthe first one in the call stack whose ExceptionType matches the type of \nthe exception thrown\n\u2013 A single catch block can handle more than one type of exception\n\u2022 The "
+          },
+          {
+            "document": "Lec-3.1-Exceptions.pdf",
+            "location": "p.4",
+            "score": 8.385242548054418,
+            "excerpt": "The Catch or Specify Requirement\n\u2022 Code that might throw certain exceptions must be enclosed by \neither of the following\n\u2013 A try statement that catches the exception\n\u2022 Providing a handler for the exception\n\u2013 A method that specifies that it can throw the exception\n\u2022 Providing a throws clause that lists the exception\n\u2022 Not all exceptions are subject to the Catch or Specify \nRequirement\n4"
+          },
+          {
+            "document": "Lec-4-AI-Assisted-Java-Development.pdf",
+            "location": "p.2",
+            "score": 7.402102249266535,
+            "excerpt": "When Is Generated Code Finished?\n\u2022 AI writes a GradeBook class and says: \"Done.\"\n\u2022 Does it do what we actually wanted?\n\u2022 What evidence shows that it works?\n\u2022 Who decides whether to accept it?\nExample: is a score of exactly 60 a pass? The code may compile either way.\nOverview 2"
+          },
+          {
+            "document": "Lec-3.1-Exceptions.pdf",
+            "location": "p.5",
+            "score": 6.888491558790568,
+            "excerpt": "Three Categories of Exceptions\n\u2022 Checked exception: exceptional conditions that a well-written \napplication should anticipate and recover from\n\u2013 Example: java.io.FileNotFoundException\n\u2013 Subject to the Catch or Specify Requirement\n\u2022 Error: exceptional conditions that are external to the application, \nand that the application usually cannot anticipate or recover from\n\u2013 Example: java.io.IOError\n\u2022 Runtime exception: exceptional conditions that are internal to \nthe application, and that the applicati"
+          }
+        ]
+      },
+      {
+        "id": "no-match",
+        "question": "Explain quasarpulsarxyz.",
+        "expectedDocument": "",
+        "expectedPages": [],
+        "top1Correct": false,
+        "top5Correct": false,
+        "milliseconds": 0.0296,
+        "hits": []
+      }
+    ],
+    "liveStatus": "NOT_REQUESTED",
+    "liveChecks": []
+  },
+  "liveAttempt": {
+    "liveStatus": "BLOCKED",
+    "liveChecks": [
+      {
+        "id": "exceptions",
+        "status": "ERROR",
+        "milliseconds": 30657.7968,
+        "sources": [],
+        "error": "Failed to reach LLM endpoint: Tunnel failed, got: 502"
+      }
+    ]
+  },
+  "connectionChecks": [
+    {
+      "client": "PowerShell",
+      "httpStatus": 403,
+      "message": "current network environment unsupported"
+    },
+    {
+      "client": "Java default direct route",
+      "message": "HTTP connect timed out"
+    },
+    {
+      "client": "Java Windows system proxy",
+      "message": "Tunnel failed, got: 502"
+    }
+  ],
+  "regressionTests": {
+    "integration": {
+      "tests": 149,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "idea": {
+      "tests": 215,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  }
+}
