@@ -213,22 +213,24 @@ The project is organised into five modules under the shared `com.cst3492.ta` arc
 | `rag` | Course document ingestion, chunking, indexing, and retrieval |
 | `llm` | LLM integration, answer generation, and citation handling |
 | `ui` | Tool Window, chat interface, and editor context actions |
-| `settings` | Plugin settings and API-key storage |
+| `settings` | Reserved for a future settings UI; current configuration uses environment variables and the terminal wizard |
 
-### Intended data flow
+### Integrated data flow
 
 1. The UI collects a question and optional selected Java code.
 2. The RAG module retrieves relevant course material and source locations.
 3. The LLM module generates an answer using the question, selected code, and retrieved material.
 4. The UI displays the answer and its course citations.
 
-The module structure defines the intended integration architecture. The complete retrieval and LLM pipeline has not yet been implemented in this prototype.
+The retrieval, LLM and UI pipeline is connected and has passed the documented
+automated checks and operator-confirmed live course-material checks. See the
+integration acceptance record for evidence and remaining manual checks.
 
 ### Current UI implementation
 
 The current UI implementation is located under `com.cst3492.assistant`. It provides:
 
-- A Tool Window with a mock chat interface.
+- A Tool Window with live course retrieval and LLM answers, plus an explicit mock mode.
 - Structured answers and typed PDF-page/PPT-slide source previews.
 - Editor right-click integration for attaching selected Java code.
 - Separate code-context preview, context clearing, and send-time request snapshots.
@@ -426,7 +428,9 @@ Set-Location 'D:\Desktop\Java'
 .\gradlew.bat verifyPlugin
 ```
 
-`build` compiles and packages the plugin ZIP under `build/distributions/`.
+`build` compiles and runs the configured tests; `buildPlugin` creates the plugin
+installation ZIP under `build/distributions/`. This plugin ZIP is separate from
+the assignment's final source-and-document submission package.
 `verifyPluginProjectConfiguration` checks build/platform settings;
 `verifyPluginStructure` checks the packaged plugin descriptor and layout.
 `verifyPlugin` performs binary compatibility checks against the local sandbox
