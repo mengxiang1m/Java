@@ -9,6 +9,8 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,17 +25,19 @@ import java.util.regex.Pattern;
  *
  * <p>Grounding is strict: an answer is {@code basedOnCourseMaterial} only when
  * the model claims it, the retrieval found relevant material, <em>and</em> at
- * least one returned citation matches a retrieved chunk's document name and
- * page range. Citations the model invents are dropped, so a model can never
+ * least one returned citation resolves to a supplied source ID, or matches a
+ * retrieved chunk's document name and page range in the legacy format.
+ * Citations the model invents are dropped, so a model can never
  * cite a source (or page) it was not given.</p>
  */
 public final class AnswerParser {
 
     private static final Gson GSON = new Gson();
+    private static final System.Logger LOG = System.getLogger(AnswerParser.class.getName());
     private static final Pattern JSON_OBJECT = Pattern.compile("\\{.*}", Pattern.DOTALL);
     private static final Pattern UNVERIFIED_REFERENCE = Pattern.compile(
             "(?s)(```.*?(?:```|\\z)|`[^`\\r\\n]*`)"
-                    + "|[ \\t]*(?<![\\p{L}\\p{N}_\\]])\\[\\d+\\](?!\\()");
+                    + "|([ \\t]*)(?<![\\p{L}\\p{N}_\\]])\\[(\\d+)\\](?!\\()");
 
     /**
      * Parses the model output, cross-checking any citations against the
@@ -53,12 +57,27 @@ public final class AnswerParser {
             try {
                 AnswerJson dto = GSON.fromJson(json, AnswerJson.class);
                 if (dto != null && dto.answer != null && !dto.answer.isBlank()) {
-                    List<Citation> citations = filterValidCitations(toCitations(dto.citations), retrieval);
+                    boolean numbered = dto.citations != null && dto.citations.stream()
+                            .anyMatch(citation -> citation != null && citation.sourceId != null);
+                    List<Citation> citations;
+                    String content = dto.answer;
+                    if (numbered) {
+                        var validated = sourceIdCitations(dto.citations, retrieval);
+                        citations = validated.citations();
+                        content = rewriteReferences(content, validated.numbers());
+                    } else {
+                        citations = filterValidCitations(toCitations(dto.citations), retrieval);
+                    }
                     boolean grounded = Boolean.TRUE.equals(dto.basedOnCourseMaterial)
                             && !citations.isEmpty()
                             && retrieval.isRelevant();
-                    return grounded ? new AssistantAnswer(dto.answer, citations, true)
-                            : AssistantAnswer.generalKnowledge(withoutUnverifiedReferences(dto.answer));
+                    if (!grounded && retrieval.isRelevant()) {
+                        LOG.log(System.Logger.Level.INFO,
+                                "Course citation result: modelDeclaredCourse={0}, retrievedChunks={1}, verifiedSources={2}",
+                                dto.basedOnCourseMaterial, retrieval.getChunks().size(), citations.size());
+                    }
+                    return grounded ? new AssistantAnswer(content, citations, true)
+                            : AssistantAnswer.generalKnowledge(withoutUnverifiedReferences(content));
                 }
             } catch (Exception ignored) {
                 // Fall through to the plain-text handling below.
@@ -68,13 +87,48 @@ public final class AnswerParser {
         // The model ignored the JSON instruction: treat the whole text as a
         // general-knowledge answer. Without a validated citation it can never
         // be grounded, regardless of what the retrieval returned.
+        if (retrieval.isRelevant()) {
+            LOG.log(System.Logger.Level.WARNING,
+                    "Model response did not contain the expected answer JSON; retrievedChunks={0}. Raw response omitted.",
+                    retrieval.getChunks().size());
+        }
         return AssistantAnswer.generalKnowledge(withoutUnverifiedReferences(rawContent.trim()));
     }
 
     /** Drop source-number tokens from ungrounded prose while preserving code and links. */
     private static String withoutUnverifiedReferences(String text) {
-        return UNVERIFIED_REFERENCE.matcher(text).replaceAll(match ->
-                match.group(1) == null ? "" : Matcher.quoteReplacement(match.group(1)));
+        return rewriteReferences(text, Map.of());
+    }
+
+    private static String rewriteReferences(String text, Map<Integer, Integer> numbers) {
+        return UNVERIFIED_REFERENCE.matcher(text).replaceAll(match -> {
+            if (match.group(1) != null) return Matcher.quoteReplacement(match.group(1));
+            try {
+                Integer number = numbers.get(Integer.parseInt(match.group(3)));
+                return number == null ? "" : Matcher.quoteReplacement(match.group(2) + "[" + number + "]");
+            } catch (NumberFormatException exception) {
+                return "";
+            }
+        });
+    }
+
+    private record SourceCitations(List<Citation> citations, Map<Integer, Integer> numbers) { }
+
+    private static SourceCitations sourceIdCitations(List<CitationJson> requested, RetrievalResult retrieval) {
+        List<Citation> citations = new ArrayList<>();
+        Map<Integer, Integer> numbers = new LinkedHashMap<>();
+        for (CitationJson source : requested) {
+            if (source == null || source.sourceId == null || source.sourceId < 1
+                    || source.sourceId > retrieval.getChunks().size()) continue;
+            RetrievedChunk chunk = retrieval.getChunks().get(source.sourceId - 1);
+            if (source.document != null && !Objects.equals(normalize(source.document), normalize(chunk.getDocumentName()))) continue;
+            if (source.pageRange != null && !Objects.equals(normalize(source.pageRange), normalize(chunk.getPageRange()))) continue;
+            int index = 0;
+            while (index < citations.size() && !matches(citations.get(index), chunk)) index++;
+            if (index == citations.size()) citations.add(new Citation(chunk.getDocumentName(), chunk.getPageRange()));
+            numbers.put(source.sourceId, index + 1);
+        }
+        return new SourceCitations(citations, numbers);
     }
 
     /**
@@ -154,6 +208,8 @@ public final class AnswerParser {
     }
 
     private static final class CitationJson {
+        @SerializedName(value = "sourceId", alternate = {"source_id"})
+        Integer sourceId;
         String document;
         @SerializedName("pageRange")
         String pageRange;

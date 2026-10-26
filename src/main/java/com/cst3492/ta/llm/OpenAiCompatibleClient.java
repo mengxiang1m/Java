@@ -24,6 +24,7 @@ import java.util.Objects;
 public final class OpenAiCompatibleClient implements LlmClient {
 
     private static final Gson GSON = new Gson();
+    private static final System.Logger LOG = System.getLogger(OpenAiCompatibleClient.class.getName());
 
     private final HttpClient httpClient;
 
@@ -67,6 +68,7 @@ public final class OpenAiCompatibleClient implements LlmClient {
         }
 
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            LOG.log(System.Logger.Level.WARNING, "LLM HTTP request failed: status={0}", response.statusCode());
             throw new LlmException("LLM endpoint returned HTTP " + response.statusCode()
                     + ": " + truncate(response.body()));
         }
@@ -125,6 +127,11 @@ public final class OpenAiCompatibleClient implements LlmClient {
         root.addProperty("temperature", config.getTemperature());
         root.addProperty("max_tokens", config.getMaxTokens());
         root.addProperty("stream", false);
+        if (config.isJsonMode()) {
+            JsonObject format = new JsonObject();
+            format.addProperty("type", "json_object");
+            root.add("response_format", format);
+        }
 
         return GSON.toJson(root);
     }
@@ -141,7 +148,11 @@ public final class OpenAiCompatibleClient implements LlmClient {
             if (message == null || message.get("content") == null || message.get("content").isJsonNull()) {
                 throw new LlmException("LLM response has no message content: " + truncate(responseBody));
             }
-            return message.get("content").getAsString();
+            String content = message.get("content").getAsString();
+            var reason = choices.get(0).getAsJsonObject().get("finish_reason");
+            LOG.log(System.Logger.Level.INFO, "LLM completion: finishReason={0}, contentCharacters={1}",
+                    reason == null || reason.isJsonNull() ? "not reported" : reason.getAsString(), content.length());
+            return content;
         } catch (LlmException e) {
             throw e;
         } catch (Exception e) {

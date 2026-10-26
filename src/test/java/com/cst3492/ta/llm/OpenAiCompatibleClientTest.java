@@ -14,6 +14,24 @@ class OpenAiCompatibleClientTest {
     private final OpenAiCompatibleClient client = new OpenAiCompatibleClient();
 
     @Test
+    void requestsJsonObjectsForDeepSeekAndTongji() {
+        for (var provider : new LlmProvider[]{LlmProvider.DEEPSEEK, LlmProvider.TONGJI}) {
+            var config = LlmConfig.builder(provider, "unused-test-key").model("test-model").build();
+            var body = JsonParser.parseString(OpenAiCompatibleClient.buildRequestBody(config, new Prompt("JSON", "q")))
+                    .getAsJsonObject();
+            assertEquals("json_object", body.getAsJsonObject("response_format").get("type").getAsString());
+        }
+    }
+
+    @Test
+    void jsonModeCanBeDisabledForAnEndpointWithoutSupport() {
+        var config = LlmConfig.builder(LlmProvider.TONGJI, "unused-test-key").jsonMode(false).build();
+        var body = JsonParser.parseString(OpenAiCompatibleClient.buildRequestBody(config, new Prompt("JSON", "q")))
+                .getAsJsonObject();
+        assertTrue(!body.has("response_format"));
+    }
+
+    @Test
     void buildsRequestWithModelAndBothRoles() {
         LlmConfig config = LlmConfig.deepseek("secret");
         String body = OpenAiCompatibleClient.buildRequestBody(config, new Prompt("sys", "user"));

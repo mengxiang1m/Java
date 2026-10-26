@@ -15,6 +15,7 @@ import java.util.Objects;
  * grounded in course material, the required disclaimer is appended.</p>
  */
 public final class AnswerGenerationService {
+    private static final System.Logger LOG = System.getLogger(AnswerGenerationService.class.getName());
 
     private final LlmConfig config;
     private final LlmClient client;
@@ -36,9 +37,12 @@ public final class AnswerGenerationService {
     /** Generates an answer for a fully-formed query. */
     public AssistantAnswer generate(AssistantQuery query) {
         Objects.requireNonNull(query, "query");
+        LOG.log(System.Logger.Level.INFO, "RAG request: retrievedChunks={0}, promptChunks={1}, jsonMode={2}",
+                query.getRetrieval().getChunks().size(), template.visibleRetrieval(query.getRetrieval()).getChunks().size(),
+                config.isJsonMode());
         Prompt prompt = template.render(query);
         String raw = client.complete(config, prompt);
-        AssistantAnswer answer = parser.parse(raw, query.getRetrieval());
+        AssistantAnswer answer = parser.parse(raw, template.visibleRetrieval(query.getRetrieval()));
         return enforceDisclaimer(answer);
     }
 

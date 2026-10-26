@@ -8,7 +8,8 @@ import java.util.Objects;
  *
  * <p>The base URL and model default to the provider's values and can be
  * overridden via the builder (needed for the Tongji platform, whose model name
- * is account-specific).</p>
+ * is account-specific). JSON object output is enabled by default for DeepSeek
+ * and Tongji, and can be disabled for endpoints without that capability.</p>
  */
 public final class LlmConfig {
 
@@ -19,6 +20,7 @@ public final class LlmConfig {
     private final double temperature;
     private final int maxTokens;
     private final Duration timeout;
+    private final boolean jsonMode;
 
     private LlmConfig(Builder builder) {
         this.provider = Objects.requireNonNull(builder.provider, "provider");
@@ -28,6 +30,7 @@ public final class LlmConfig {
         this.temperature = builder.temperature;
         this.maxTokens = builder.maxTokens;
         this.timeout = builder.timeout;
+        this.jsonMode = builder.jsonMode;
     }
 
     public LlmProvider getProvider() {
@@ -58,6 +61,10 @@ public final class LlmConfig {
         return timeout;
     }
 
+    public boolean isJsonMode() {
+        return jsonMode;
+    }
+
     public static Builder builder(LlmProvider provider, String apiKey) {
         return new Builder(provider, apiKey);
     }
@@ -76,10 +83,12 @@ public final class LlmConfig {
         private double temperature = 0.3;
         private int maxTokens = 2048;
         private Duration timeout = Duration.ofSeconds(60);
+        private boolean jsonMode;
 
         private Builder(LlmProvider provider, String apiKey) {
             this.provider = Objects.requireNonNull(provider, "provider");
             this.apiKey = Objects.requireNonNull(apiKey, "apiKey");
+            this.jsonMode = provider != LlmProvider.CUSTOM;
         }
 
         public Builder baseUrl(String baseUrl) {
@@ -104,6 +113,11 @@ public final class LlmConfig {
 
         public Builder timeout(Duration timeout) {
             this.timeout = timeout;
+            return this;
+        }
+
+        public Builder jsonMode(boolean jsonMode) {
+            this.jsonMode = jsonMode;
             return this;
         }
 

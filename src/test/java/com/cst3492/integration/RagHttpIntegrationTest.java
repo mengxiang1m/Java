@@ -27,6 +27,27 @@ import static org.junit.jupiter.api.Assertions.*;
 class RagHttpIntegrationTest {
     @TempDir Path temp;
 
+    @Test
+    void structuredCourseResponseUsesSourceIdsInsteadOfCopyingAUnicodeFilePath() throws Exception {
+        Path document = CourseFixtures.write(temp.resolve("真实课程 Exceptions.pdf"), "", "", "", "",
+                "Checked exceptions must be caught or declared. Runtime exceptions are unchecked.");
+        var knowledge = new KnowledgeBaseService();
+        knowledge.ingest(document);
+        String content = """
+                {"answer":"Checked exceptions must be caught or declared [1].",
+                 "citations":[{"sourceId":1}],"basedOnCourseMaterial":true}
+                """;
+        try (var endpoint = endpoint(200, content)) {
+            var service = ChatServiceFactory.create(environment(endpoint, "tongji"), knowledge).service();
+            var reply = service.reply("What is the difference between checked and unchecked exceptions?");
+            assertEquals("Checked exceptions must be caught or declared [1].", reply.text());
+            assertEquals(List.of(new CourseSource(document.toRealPath().toString(), CourseSource.Type.PDF_PAGE, 5, false)),
+                    reply.sources());
+            assertEquals("json_object", endpoint.request().get().getAsJsonObject("response_format").get("type").getAsString());
+            assertFalse(reply.text().contains(PromptTemplate.GENERAL_KNOWLEDGE_DISCLAIMER));
+        }
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"pdf", "pptx", "ppt"})
     void realImportHttpPromptAndValidatedCitationWorkTogether(String extension) throws Exception {

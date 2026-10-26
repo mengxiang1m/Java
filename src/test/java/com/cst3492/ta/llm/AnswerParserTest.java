@@ -16,6 +16,52 @@ class AnswerParserTest {
 
     private final AnswerParser parser = new AnswerParser();
 
+    @Test
+    void sourceIdUsesRealMetadataAndRenumbersTheVisibleReference() {
+        var retrieval = new RetrievalResult(List.of(chunk("Other.pdf", "p.1"),
+                chunk("/course/课程资料/Lec-3.1-Exceptions.pdf", "p.5")));
+        var answer = parser.parse("""
+                {"answer":"Checked exceptions must be caught or declared [2].",
+                 "citations":[{"sourceId":2}],"basedOnCourseMaterial":true}
+                """, retrieval);
+        assertTrue(answer.isBasedOnCourseMaterial());
+        assertEquals("Checked exceptions must be caught or declared [1].", answer.getContent());
+        assertEquals("/course/课程资料/Lec-3.1-Exceptions.pdf", answer.getCitations().getFirst().getDocumentName());
+        assertEquals("p.5", answer.getCitations().getFirst().getPageRange());
+    }
+
+    @Test
+    void invalidSourceIdsCannotCreateSources() {
+        var answer = parser.parse("""
+                {"answer":"Answer [0] [9].", "citations":[{"sourceId":0},{"sourceId":9}],
+                 "basedOnCourseMaterial":true}
+                """, new RetrievalResult(List.of(chunk("Lecture.pdf", "p.5"))));
+        assertFalse(answer.isBasedOnCourseMaterial());
+        assertTrue(answer.getCitations().isEmpty());
+        assertFalse(answer.getContent().contains("[9]"));
+    }
+
+    @Test
+    void duplicateSourceIdsForOnePageShareOneDisplayedCitation() {
+        var answer = parser.parse("""
+                {"answer":"First [1], then [2].", "citations":[{"sourceId":1},{"sourceId":2}],
+                 "basedOnCourseMaterial":true}
+                """, new RetrievalResult(List.of(chunk("Lecture.pdf", "p.5"), chunk("Lecture.pdf", "p.5"))));
+        assertTrue(answer.isBasedOnCourseMaterial());
+        assertEquals(1, answer.getCitations().size());
+        assertEquals("First [1], then [1].", answer.getContent());
+    }
+
+    @Test
+    void conflictingMetadataCannotOverrideASourceId() {
+        var answer = parser.parse("""
+                {"answer":"Answer [1].", "citations":[{"sourceId":1,"document":"Fake.pdf","pageRange":"p.99"}],
+                 "basedOnCourseMaterial":true}
+                """, new RetrievalResult(List.of(chunk("Lecture.pdf", "p.5"))));
+        assertFalse(answer.isBasedOnCourseMaterial());
+        assertTrue(answer.getCitations().isEmpty());
+    }
+
     private static RetrievedChunk chunk(String document, String pageRange) {
         return new RetrievedChunk(document, pageRange, "chunk content", 0.9);
     }

@@ -2,6 +2,7 @@ package com.cst3492.ta.llm;
 
 import com.cst3492.ta.core.AssistantQuery;
 import com.cst3492.ta.core.RetrievedChunk;
+import com.cst3492.ta.core.RetrievalResult;
 
 import java.util.List;
 
@@ -33,6 +34,11 @@ public final class PromptTemplate {
 
     public Prompt render(AssistantQuery query) {
         return new Prompt(systemPrompt, buildUserPrompt(query));
+    }
+
+    RetrievalResult visibleRetrieval(RetrievalResult retrieval) {
+        int count = Math.min(Math.max(0, maxChunks), retrieval.getChunks().size());
+        return new RetrievalResult(List.copyOf(retrieval.getChunks().subList(0, count)));
     }
 
     private String buildUserPrompt(AssistantQuery query) {
@@ -77,19 +83,20 @@ public final class PromptTemplate {
                 + "with a source id such as [1], [2], and carries a document name and page range.\n"
                 + "\n"
                 + "Rules:\n"
-                + "1. Prefer the retrieved chunks when they are relevant. When you use a chunk, cite its id inline "
+                + "1. Use the retrieved chunks to answer when they contain the requested course facts. When you use a chunk, cite its id inline "
                 + "in the answer, e.g. \"As stated in [1] ...\".\n"
                 + "2. Only cite chunks that are actually relevant to the question. Do not force a citation.\n"
                 + "3. If no retrieved chunk is relevant (or none were provided), answer from your general Java "
                 + "knowledge and set basedOnCourseMaterial to false.\n"
-                + "4. Never invent a document name or page number. Copy them verbatim from the chunks you were given.\n"
-                + "5. The citations list must contain exactly the sources you cited inline, in the order they first appear.\n"
+                + "4. In citations, return only the integer sourceId from a supplied [N] label. The application maps it to the real document and page; do not copy filenames or paths. Never invent source ids.\n"
+                + "5. The citations list must contain exactly the sources you cited inline, in the order they first appear. If you quote or paraphrase course material, basedOnCourseMaterial must be true and citations must not be empty.\n"
+                + "6. Put a space before inline source markers, and put Java code inside fenced blocks or inline backticks.\n"
                 + "\n"
                 + "Return only a single JSON object with exactly this shape, and nothing else (no markdown fences, "
                 + "no commentary):\n"
                 + "{\n"
                 + "  \"answer\": \"Your answer. Cite chunks inline as [1], [2].\",\n"
-                + "  \"citations\": [ { \"document\": \"Lecture3_JDBC.pdf\", \"pageRange\": \"p.12\" } ],\n"
+                + "  \"citations\": [ { \"sourceId\": 1 } ],\n"
                 + "  \"basedOnCourseMaterial\": true\n"
                 + "}\n"
                 + "\n"

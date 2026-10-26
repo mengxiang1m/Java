@@ -46,6 +46,8 @@ public final class ChatServiceFactory {
         LlmConfig.Builder config = LlmConfig.builder(provider, key);
         if (!baseUrl.isEmpty()) config.baseUrl(baseUrl);
         if (!model.isEmpty()) config.model(model);
+        String jsonMode = environment.get("CST3492_LLM_JSON_MODE");
+        if (jsonMode != null) config.jsonMode(Boolean.parseBoolean(jsonMode));
         return new Selection(new LlmChatService(new AnswerGenerationService(
                 config.build(), new OpenAiCompatibleClient()), knowledge),
                 provider + " configured — course retrieval ready.");

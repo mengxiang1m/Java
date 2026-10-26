@@ -16,6 +16,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AnswerGenerationServiceTest {
 
     @Test
+    void sourcesOutsideTheRenderedPromptCannotBeCited() {
+        var template = new PromptTemplate(PromptTemplate.defaultSystemPrompt(), 1);
+        var service = new AnswerGenerationService(LlmConfig.deepseek("unused-test-key"),
+                (config, prompt) -> """
+                        {"answer":"Hidden source [2].", "citations":[{"sourceId":2}],"basedOnCourseMaterial":true}
+                        """, template, new AnswerParser());
+        var retrieval = new RetrievalResult(List.of(new RetrievedChunk("Shown.pdf", "p.1", "shown", 2),
+                new RetrievedChunk("Hidden.pdf", "p.2", "hidden", 1)));
+        var answer = service.generate("q", retrieval, null);
+        assertFalse(answer.isBasedOnCourseMaterial());
+        assertTrue(answer.getCitations().isEmpty());
+    }
+
+    @Test
     void plainTextFallbackDoesNotLeaveUnverifiedSourceNumbers() {
         var service = new AnswerGenerationService(LlmConfig.deepseek("unused-test-key"),
                 (config, prompt) -> "On success call commit; otherwise rollback [1].");
